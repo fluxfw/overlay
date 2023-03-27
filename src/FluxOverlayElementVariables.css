@@ -1,0 +1,11 @@
+:root {
+    --flux-overlay-active-button-background-color: var(--flux-color-scheme-foreground, #000000);
+    --flux-overlay-active-button-foreground-color: var(--flux-color-scheme-background, #ffffff);
+    --flux-overlay-background-color: rgba(0, 0, 0, 0.2);
+    --flux-overlay-button-background-color: var(--flux-color-scheme-background, #ffffff);
+    --flux-overlay-button-focus-outline-color: var(--flux-color-scheme-foreground, #000000);
+    --flux-overlay-button-foreground-color: var(--flux-color-scheme-foreground, #000000);
+    --flux-overlay-container-background-color: var(--flux-color-scheme-accent, #000000);
+    --flux-overlay-container-foreground-color: var(--flux-color-scheme-accent-foreground, #ffffff);
+    --flux-overlay-z-index: 2000;
+}

@@ -1,0 +1,108 @@
+:host {
+    align-items: center;
+    background-color: var(--flux-overlay-background-color);
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    left: 0;
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: var(--flux-overlay-z-index);
+}
+
+.container {
+    background-color: var(--flux-overlay-container-background-color);
+    color: var(--flux-overlay-container-foreground-color);
+    height: auto;
+    max-height: calc(100% - 40px);
+    max-width: calc(100% - 40px);
+    min-width: 300px;
+    overflow: auto;
+    padding: 10px;
+    padding-top: 0;
+    width: auto;
+}
+
+.title {
+    font-size: 20px;
+    font-weight: bold;
+    height: auto;
+    margin-top: 10px;
+    max-width: 100%;
+    overflow: hidden;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: auto;
+}
+
+.message {
+    font-size: 16px;
+    height: auto;
+    margin-top: 10px;
+    max-width: 100%;
+    text-align: center;
+    width: auto;
+}
+
+.loading {
+    --flux-loading-spinner-color: var(--flux-overlay-container-foreground-color);
+    margin-top: 10px;
+}
+
+.buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: auto;
+    margin-top: 10px;
+    max-width: 100%;
+    width: auto;
+}
+
+button {
+    -webkit-tap-highlight-color: transparent;
+    background-color: var(--flux-overlay-button-background-color);
+    border: none;
+    border-radius: 0;
+    color: var(--flux-overlay-button-foreground-color);
+    cursor: default;
+    font-size: 16px;
+    height: 30px;
+    max-width: 100%;
+    outline: none;
+    padding: 0 10px;
+    overflow: hidden;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: auto;
+}
+
+button:not(:disabled) {
+    cursor: pointer;
+}
+
+button:not(:disabled):focus-visible {
+    outline: 2px solid var(--flux-overlay-button-focus-outline-color);
+    outline-offset: -2px;
+}
+
+button:disabled {
+    opacity: 0.6;
+}
+
+button:not(:disabled):hover,
+button:not(:disabled):active {
+    background-color: var(--flux-overlay-active-button-background-color);
+    color: var(--flux-overlay-active-button-foreground-color);
+}
+
+.title:empty,
+.message:empty,
+.loading:empty,
+.buttons:empty {
+    display: none;
+}
