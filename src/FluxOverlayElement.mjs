@@ -158,7 +158,7 @@ export class FluxOverlayElement extends HTMLElement {
         const loading_element = this.#shadow.querySelector(".loading");
 
         Array.from(loading_element.children).forEach(flux_loading_spinner_element => {
-            flux_loading_spinner_element.parentElement.remove();
+            flux_loading_spinner_element.remove();
         });
 
         if (loading) {
