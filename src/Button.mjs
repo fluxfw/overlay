@@ -1,3 +1,3 @@
 /**
- * @typedef {{disabled?: boolean, label: string, title?: string, value?: string}} Button
+ * @typedef {{disabled?: boolean, label: string, title?: string, value: string}} Button
  */

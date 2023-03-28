@@ -18,7 +18,7 @@
     height: auto;
     max-height: calc(100% - 40px);
     max-width: calc(100% - 40px);
-    min-width: 300px;
+    min-width: 50%;
     overflow: auto;
     padding: 10px;
     padding-top: 0;
@@ -47,9 +47,67 @@
     width: auto;
 }
 
-.loading {
-    --flux-loading-spinner-color: var(--flux-overlay-container-foreground-color);
+.inputs {
+    display: flex;
+    flex-direction: column;
+    height: auto;
     margin-top: 10px;
+    max-width: 100%;
+    width: auto;
+}
+
+input,
+select,
+textarea {
+    background-color: var(--flux-overlay-input-background-color);
+    border: 1px solid var(--flux-overlay-input-border-color);
+    border-radius: 0;
+    box-sizing: content-box;
+    color: var(--flux-overlay-input-foreground-color);
+    font-family: inherit;
+    font-size: 16px;
+    height: 20px;
+    max-width: 100%;
+    outline: none;
+    padding: 2px 5px;
+    width: auto;
+}
+
+input:not(:last-child),
+select:not(:last-child),
+textarea:not(:last-child) {
+    border-bottom: none;
+}
+
+select[multiple] {
+    height: auto;
+}
+
+textarea {
+    height: 40px;
+    min-height: 40px;
+    resize: vertical;
+}
+
+input:not(:disabled):focus-visible,
+select:not(:disabled):focus-visible,
+textarea:not(:disabled):focus-visible {
+    outline: 2px solid var(--flux-overlay-input-focus-outline-color);
+    outline-offset: -2px;
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+    opacity: 0.6;
+}
+
+.loading {
+    --flux-loading-spinner-color: var(--flux-overlay-loading-color);
+    height: auto;
+    margin-top: 10px;
+    max-width: 100%;
+    width: auto;
 }
 
 .buttons {
@@ -73,8 +131,8 @@ button {
     height: 30px;
     max-width: 100%;
     outline: none;
-    padding: 0 10px;
     overflow: hidden;
+    padding: 0 10px;
     text-align: center;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -100,8 +158,17 @@ button:not(:disabled):active {
     color: var(--flux-overlay-active-button-foreground-color);
 }
 
+.buttons[data-confirm] {
+    flex-direction: row;
+}
+
+.buttons[data-confirm] button {
+   flex-grow: 1;
+}
+
 .title:empty,
 .message:empty,
+.inputs:empty,
 .loading:empty,
 .buttons:empty {
     display: none;

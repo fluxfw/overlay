@@ -1,15 +1,18 @@
 {
-    "version": "2023-03-27-2",
+    "version": "2023-03-28-1",
     "description": "Overlay",
     "topics": [
         "alert",
         "button",
         "buttons",
         "confirm",
+        "input",
+        "inputs",
         "loading",
         "message",
         "overlay",
         "popup",
+        "prompt",
         "title"
     ],
     "homepage": ""
