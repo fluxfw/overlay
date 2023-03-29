@@ -291,7 +291,7 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {Input[]}
      */
     get inputs() {
-        return Array.from(this.#shadow.querySelectorAll(".inputs input, .inputs select, .inputs textarea")).map(input_element => ({
+        return Array.from(this.#shadow.querySelector(".inputs").elements).map(input_element => ({
             disabled: input_element.disabled,
             max: input_element.max ?? "",
             "max-length": input_element.maxLength ?? -1,
@@ -325,13 +325,13 @@ export class FluxOverlayElement extends HTMLElement {
         const inputs_element = this.#shadow.querySelector(".inputs");
 
         if (typeof inputs === "boolean") {
-            for (const input_element of inputs_element.querySelectorAll("input, select, textarea")) {
+            for (const input_element of inputs_element.elements) {
                 input_element.disabled = inputs;
             }
             return;
         }
 
-        Array.from(inputs_element.querySelectorAll("input, select, textarea")).forEach(input_element => {
+        Array.from(inputs_element.elements).forEach(input_element => {
             input_element.remove();
         });
 
