@@ -313,7 +313,7 @@ export class FluxOverlayElement extends HTMLElement {
             step: input_element.step ?? "",
             title: input_element.title,
             type: input_element instanceof HTMLSelectElement ? "select" : input_element.type,
-            value: input_element.value
+            value: input_element.type === "number" ? !Number.isNaN(input_element.valueAsNumber) ? input_element.valueAsNumber : null : input_element.value
         }));
     }
 
@@ -429,16 +429,23 @@ export class FluxOverlayElement extends HTMLElement {
                 input_element.type = type;
             }
 
-            const value = input.value ?? "";
-            if (value !== "") {
-                input_element.value = value;
+            if (type === "number") {
+                const value = input.value ?? null;
+                if (value !== null) {
+                    input_element.valueAsNumber = value;
+                }
+            } else {
+                const value = input.value ?? "";
+                if (value !== "") {
+                    input_element.value = value;
+                }
             }
 
             input_element.addEventListener("change", () => {
                 this.dispatchEvent(new CustomEvent(FLUX_OVERLAY_INPUT_CHANGE_EVENT, {
                     detail: {
                         name: input_element.name,
-                        value: input_element.value
+                        value: input_element.type === "number" ? !Number.isNaN(input_element.valueAsNumber) ? input_element.valueAsNumber : null : input_element.value
                     }
                 }));
             });
@@ -447,7 +454,7 @@ export class FluxOverlayElement extends HTMLElement {
                 this.dispatchEvent(new CustomEvent(FLUX_OVERLAY_INPUT_INPUT_EVENT, {
                     detail: {
                         name: input_element.name,
-                        value: input_element.value
+                        value: input_element.type === "number" ? !Number.isNaN(input_element.valueAsNumber) ? input_element.valueAsNumber : null : input_element.value
                     }
                 }));
             });
