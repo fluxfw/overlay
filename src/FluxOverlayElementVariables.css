@@ -11,6 +11,7 @@
     --flux-overlay-input-border-color: var(--flux-color-scheme-foreground, #000000);
     --flux-overlay-input-focus-outline-color: var(--flux-color-scheme-foreground, #000000);
     --flux-overlay-input-foreground-color: var(--flux-color-scheme-foreground, #000000);
+    --flux-overlay-input-invalid-outline-color: #ff0000;
     --flux-overlay-loading-color: var(--flux-color-scheme-accent-foreground, #ffffff);
     --flux-overlay-z-index: 2000;
 }

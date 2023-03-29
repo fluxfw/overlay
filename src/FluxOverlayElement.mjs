@@ -2,6 +2,7 @@ import { flux_css_api } from "../../flux-css-api/src/FluxCssApi.mjs";
 
 /** @typedef {import("./Button.mjs").Button} Button */
 /** @typedef {import("./Input.mjs").Input} Input */
+/** @typedef {import("./Result.mjs").Result} Result */
 
 flux_css_api.adopt(
     document,
@@ -54,7 +55,7 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {Promise<boolean>}
      */
     static async confirm(title, message, no_button_label, yes_button_label) {
-        return await this.new(
+        return (await this.new(
             title,
             message,
             null,
@@ -69,7 +70,7 @@ export class FluxOverlayElement extends HTMLElement {
                 }
             ]
         )
-            .showAndWait() === "yes";
+            .showAndWait()).button === "yes";
     }
 
     /**
@@ -125,11 +126,13 @@ export class FluxOverlayElement extends HTMLElement {
             ]
         );
 
-        if (await flux_overlay_element.showAndWait() !== "ok") {
+        const result = await flux_overlay_element.showAndWait();
+
+        if (result.button !== "ok") {
             return null;
         }
 
-        return flux_overlay_element.inputs.find(input => input.name === "input").value;
+        return result.inputs.input;
     }
 
     /**
@@ -180,6 +183,9 @@ export class FluxOverlayElement extends HTMLElement {
 
         const inputs_element = document.createElement("form");
         inputs_element.classList.add("inputs");
+        inputs_element.addEventListener("submit", e => {
+            e.preventDefault();
+        });
         container_element.appendChild(inputs_element);
 
         const loading_element = document.createElement("div");
@@ -253,7 +259,11 @@ export class FluxOverlayElement extends HTMLElement {
             button_element.addEventListener("click", () => {
                 this.dispatchEvent(new CustomEvent(FLUX_OVERLAY_BUTTON_CLICK_EVENT, {
                     detail: {
-                        value: button_element.value
+                        button: button_element.value,
+                        inputs: Object.fromEntries(this.inputs.map(input => [
+                            input.name,
+                            input.value
+                        ]))
                     }
                 }));
             });
@@ -480,13 +490,15 @@ export class FluxOverlayElement extends HTMLElement {
     }
 
     /**
+     * @param {boolean | null} validate_inputs
      * @param {boolean | null} remove
-     * @returns {Promise<string>}
+     * @returns {Promise<Result>}
      */
-    async showAndWait(remove = null) {
+    async showAndWait(validate_inputs = null, remove = null) {
         this.show();
 
         return this.wait(
+            validate_inputs,
             remove
         );
     }
@@ -530,10 +542,28 @@ export class FluxOverlayElement extends HTMLElement {
     }
 
     /**
-     * @param {boolean | null} remove
-     * @returns {Promise<string>}
+     * @param {boolean | null} report
+     * @returns {boolean}
      */
-    async wait(remove = null) {
+    validateInputs(report = null) {
+        const inputs_element = this.#shadow.querySelector(".inputs");
+
+        if (!inputs_element.checkValidity()) {
+            if (report ?? true) {
+                inputs_element.reportValidity();
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param {boolean | null} validate_inputs
+     * @param {boolean | null} remove
+     * @returns {Promise<Result>}
+     */
+    async wait(validate_inputs = null, remove = null) {
         let resolve_promise;
 
         const promise = new Promise(resolve => {
@@ -541,11 +571,21 @@ export class FluxOverlayElement extends HTMLElement {
         });
 
         this.addEventListener(FLUX_OVERLAY_BUTTON_CLICK_EVENT, e => {
+            if (validate_inputs ?? true) {
+                if (!this.validateInputs()) {
+                    resolve_promise(this.wait(
+                        validate_inputs,
+                        remove
+                    ));
+                    return;
+                }
+            }
+
             if (remove ?? true) {
                 this.remove();
             }
 
-            resolve_promise(e.detail.value);
+            resolve_promise(e.detail);
         }, {
             once: true
         });

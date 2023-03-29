@@ -18,7 +18,7 @@
     height: auto;
     max-height: calc(100% - 40px);
     max-width: calc(100% - 40px);
-    min-width: 50%;
+    min-width: min(max(300px, 50%), calc(100% - 40px));
     overflow: auto;
     padding: 10px;
     padding-top: 0;
@@ -87,6 +87,13 @@ textarea {
     height: 40px;
     min-height: 40px;
     resize: vertical;
+}
+
+input:not(:disabled):invalid,
+select:not(:disabled):invalid,
+textarea:not(:disabled):invalid {
+    outline: 2px solid var(--flux-overlay-input-invalid-outline-color);
+    outline-offset: -2px;
 }
 
 input:not(:disabled):focus-visible,
@@ -164,6 +171,8 @@ button:not(:disabled):active {
 
 .buttons[data-confirm] button {
    flex-grow: 1;
+   flex-shrink: 1;
+   width: 0;
 }
 
 .title:empty,
