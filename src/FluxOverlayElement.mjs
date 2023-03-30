@@ -82,7 +82,7 @@ export class FluxOverlayElement extends HTMLElement {
         flux_overlay_element.style.setProperty("--flux-loading-spinner-size", "100px");
         flux_overlay_element.style.setProperty("--flux-loading-spinner-width", "2px");
         flux_overlay_element.style.setProperty("--flux-overlay-container-background-color", "transparent");
-        flux_overlay_element.style.setProperty("--flux-overlay-loading-color", "var(--flux-color-scheme-accent, #000000)");
+        flux_overlay_element.style.setProperty("--flux-overlay-container-border-color", "transparent");
 
         await flux_overlay_element.showLoading();
 
@@ -106,7 +106,6 @@ export class FluxOverlayElement extends HTMLElement {
             message,
             [
                 {
-                    "auto-focus": true,
                     name: "input",
                     placeholder: input_placeholder,
                     value: input_value
@@ -273,6 +272,15 @@ export class FluxOverlayElement extends HTMLElement {
     }
 
     /**
+     * @returns {void}
+     */
+    connectedCallback() {
+        this.tabIndex = "-1";
+        this.focus();
+        this.removeAttribute("tabIndex");
+    }
+
+    /**
      * @returns {string}
      */
     get htmlTitle() {
@@ -293,6 +301,7 @@ export class FluxOverlayElement extends HTMLElement {
     get inputs() {
         return Array.from(this.#shadow.querySelector(".inputs").elements).map(input_element => ({
             disabled: input_element.disabled,
+            "input-mode": input_element.inputMode ?? "",
             max: input_element.max ?? "",
             "max-length": input_element.maxLength ?? -1,
             min: input_element.min ?? "",
@@ -340,11 +349,12 @@ export class FluxOverlayElement extends HTMLElement {
 
             const input_element = document.createElement(type === "select" || type === "textarea" ? type : "input");
 
-            if ("autofocus" in input_element) {
-                input_element.autofocus = input["auto-focus"] ?? false;
-            }
-
             input_element.disabled = input.disabled ?? false;
+
+            const input_mode = input["input-mode"] ?? "";
+            if (input_mode !== "" && "inputMode" in input_element) {
+                input_element.inputMode = input_mode;
+            }
 
             const max = input.max ?? "";
             if (max !== "" && "max" in input_element) {
@@ -497,7 +507,7 @@ export class FluxOverlayElement extends HTMLElement {
     }
 
     /**
-     * @param {boolean | null} validate_inputs
+     * @param {string[] | boolean | null} validate_inputs
      * @param {boolean | null} remove
      * @returns {Promise<Result>}
      */
@@ -566,7 +576,7 @@ export class FluxOverlayElement extends HTMLElement {
     }
 
     /**
-     * @param {boolean | null} validate_inputs
+     * @param {string[] | boolean | null} validate_inputs
      * @param {boolean | null} remove
      * @returns {Promise<Result>}
      */
@@ -578,7 +588,16 @@ export class FluxOverlayElement extends HTMLElement {
         });
 
         this.addEventListener(FLUX_OVERLAY_BUTTON_CLICK_EVENT, e => {
-            if (validate_inputs ?? true) {
+            let _validate_inputs;
+            if (validate_inputs === null) {
+                const {
+                    buttons
+                } = this;
+                _validate_inputs = (buttons.length > 1 ? buttons.splice(1) : buttons).map(button => button.value);
+            } else {
+                _validate_inputs = validate_inputs;
+            }
+            if (Array.isArray(_validate_inputs) ? _validate_inputs.includes(e.detail.button) : _validate_inputs) {
                 if (!this.validateInputs()) {
                     resolve_promise(this.wait(
                         validate_inputs,

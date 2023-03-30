@@ -14,11 +14,12 @@
 
 .container {
     background-color: var(--flux-overlay-container-background-color);
+    border: 1px solid var(--flux-overlay-container-border-color);
     color: var(--flux-overlay-container-foreground-color);
     height: auto;
-    max-height: calc(100% - 40px);
-    max-width: calc(100% - 40px);
-    min-width: min(max(300px, 50%), calc(100% - 40px));
+    max-height: calc(100% - 42px);
+    max-width: calc(100% - 42px);
+    min-width: min(max(300px, 50%), calc(100% - 42px));
     overflow: auto;
     padding: 10px;
     padding-top: 0;
@@ -66,17 +67,17 @@ textarea {
     color: var(--flux-overlay-input-foreground-color);
     font-family: inherit;
     font-size: 16px;
-    height: 20px;
+    height: 25px;
     max-width: 100%;
     outline: none;
     padding: 2px 5px;
     width: auto;
 }
 
-input:not(:last-child),
-select:not(:last-child),
-textarea:not(:last-child) {
-    border-bottom: none;
+input:not(:first-child),
+select:not(:first-child),
+textarea:not(:first-child) {
+    border-top: none;
 }
 
 select[multiple] {
@@ -92,8 +93,7 @@ textarea {
 input:not(:disabled):invalid,
 select:not(:disabled):invalid,
 textarea:not(:disabled):invalid {
-    outline: 2px solid var(--flux-overlay-input-invalid-outline-color);
-    outline-offset: -2px;
+    border-bottom-color: var(--flux-overlay-input-invalid-border-color);
 }
 
 input:not(:disabled):focus-visible,
