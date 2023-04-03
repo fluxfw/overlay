@@ -33,7 +33,7 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {Promise<void>}
      */
     static async alert(title, message, ok_button_label) {
-        await this.new(
+        await this.wait(
             title,
             message,
             null,
@@ -43,8 +43,7 @@ export class FluxOverlayElement extends HTMLElement {
                     value: "ok"
                 }
             ]
-        )
-            .showAndWait();
+        );
     }
 
     /**
@@ -55,7 +54,7 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {Promise<boolean>}
      */
     static async confirm(title, message, no_button_label, yes_button_label) {
-        return (await this.new(
+        return (await this.wait(
             title,
             message,
             null,
@@ -69,8 +68,7 @@ export class FluxOverlayElement extends HTMLElement {
                     value: "yes"
                 }
             ]
-        )
-            .showAndWait()).button === "yes";
+        )).button === "yes";
     }
 
     /**
@@ -101,7 +99,7 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {Promise<string | null>}
      */
     static async prompt(title, message, input_placeholder, input_value, cancel_button_label, ok_button_label) {
-        const flux_overlay_element = this.new(
+        const result = await this.wait(
             title,
             message,
             [
@@ -125,13 +123,28 @@ export class FluxOverlayElement extends HTMLElement {
             ]
         );
 
-        const result = await flux_overlay_element.showAndWait();
-
         if (result.button !== "ok") {
             return null;
         }
 
         return result.inputs.input;
+    }
+
+    /**
+     * @param {string | null} title
+     * @param {string | null} message
+     * @param {Input[] | null} inputs
+     * @param {Button[] | null} buttons
+     * @returns {Promise<Result>}
+     */
+    static async wait(title = null, message = null, inputs = null, buttons = null) {
+        return this.new(
+            title,
+            message,
+            inputs,
+            buttons
+        )
+            .wait();
     }
 
     /**
@@ -204,10 +217,19 @@ export class FluxOverlayElement extends HTMLElement {
     }
 
     /**
+     * @returns {void}
+     */
+    connectedCallback() {
+        this.tabIndex = "-1";
+        this.focus();
+        this.removeAttribute("tabIndex");
+    }
+
+    /**
      * @returns {Button[]}
      */
     get buttons() {
-        return Array.from(this.#shadow.querySelectorAll(".buttons button")).map(button_element => ({
+        return this.#button_elements.map(button_element => ({
             disabled: button_element.disabled,
             label: button_element.innerText,
             title: button_element.title,
@@ -220,23 +242,21 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {void}
      */
     set buttons(buttons) {
-        const buttons_element = this.#shadow.querySelector(".buttons");
-
         if (typeof buttons === "boolean") {
-            for (const button_element of buttons_element.querySelectorAll("button")) {
+            for (const button_element of this.#button_elements) {
                 button_element.disabled = buttons;
             }
             return;
         }
 
-        Array.from(buttons_element.querySelectorAll("button")).forEach(button_element => {
+        this.#button_elements.forEach(button_element => {
             button_element.remove();
         });
 
         if (buttons.length === 2) {
-            buttons_element.dataset.confirm = true;
+            this.#buttons_element.dataset.confirm = true;
         } else {
-            delete buttons_element.dataset.confirm;
+            delete this.#buttons_element.dataset.confirm;
         }
 
         for (const button of buttons) {
@@ -267,17 +287,8 @@ export class FluxOverlayElement extends HTMLElement {
                 }));
             });
 
-            buttons_element.appendChild(button_element);
+            this.#buttons_element.appendChild(button_element);
         }
-    }
-
-    /**
-     * @returns {void}
-     */
-    connectedCallback() {
-        this.tabIndex = "-1";
-        this.focus();
-        this.removeAttribute("tabIndex");
     }
 
     /**
@@ -299,9 +310,10 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {Input[]}
      */
     get inputs() {
-        return Array.from(this.#shadow.querySelector(".inputs").elements).map(input_element => ({
+        return this.#input_elements.map(input_element => ({
             disabled: input_element.disabled,
             "input-mode": input_element.inputMode ?? "",
+            label: input_element.previousElementSibling.innerText,
             max: input_element.max ?? "",
             "max-length": input_element.maxLength ?? -1,
             min: input_element.min ?? "",
@@ -322,7 +334,9 @@ export class FluxOverlayElement extends HTMLElement {
             step: input_element.step ?? "",
             title: input_element.title,
             type: input_element instanceof HTMLSelectElement ? "select" : input_element.type,
-            value: input_element.type === "number" ? !Number.isNaN(input_element.valueAsNumber) ? input_element.valueAsNumber : null : input_element.value
+            value: this.#valueFromInputElement(
+                input_element
+            )
         }));
     }
 
@@ -331,20 +345,25 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {void}
      */
     set inputs(inputs) {
-        const inputs_element = this.#shadow.querySelector(".inputs");
-
         if (typeof inputs === "boolean") {
-            for (const input_element of inputs_element.elements) {
+            for (const input_element of this.#input_elements) {
                 input_element.disabled = inputs;
             }
             return;
         }
 
-        Array.from(inputs_element.elements).forEach(input_element => {
-            input_element.remove();
+        this.#input_elements.forEach(input_element => {
+            input_element.parentElement.remove();
         });
 
         for (const input of inputs) {
+            const container_element = document.createElement("label");
+
+            const label_element = document.createElement("div");
+            label_element.classList.add("label");
+            label_element.innerText = input.label ?? "";
+            container_element.appendChild(label_element);
+
             const type = input.type ?? "text";
 
             const input_element = document.createElement(type === "select" || type === "textarea" ? type : "input");
@@ -455,7 +474,9 @@ export class FluxOverlayElement extends HTMLElement {
                 this.dispatchEvent(new CustomEvent(FLUX_OVERLAY_INPUT_CHANGE_EVENT, {
                     detail: {
                         name: input_element.name,
-                        value: input_element.type === "number" ? !Number.isNaN(input_element.valueAsNumber) ? input_element.valueAsNumber : null : input_element.value
+                        value: this.#valueFromInputElement(
+                            input_element
+                        )
                     }
                 }));
             });
@@ -464,12 +485,16 @@ export class FluxOverlayElement extends HTMLElement {
                 this.dispatchEvent(new CustomEvent(FLUX_OVERLAY_INPUT_INPUT_EVENT, {
                     detail: {
                         name: input_element.name,
-                        value: input_element.type === "number" ? !Number.isNaN(input_element.valueAsNumber) ? input_element.valueAsNumber : null : input_element.value
+                        value: this.#valueFromInputElement(
+                            input_element
+                        )
                     }
                 }));
             });
 
-            inputs_element.appendChild(input_element);
+            container_element.appendChild(input_element);
+
+            this.#inputs_element.appendChild(container_element);
         }
     }
 
@@ -477,14 +502,14 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {boolean}
      */
     get loading() {
-        return this.#shadow.querySelector(".loading").children.length > 0;
+        return this.#loading_element.children.length > 0;
     }
 
     /**
      * @returns {string}
      */
     get message() {
-        return this.#shadow.querySelector(".message").innerText;
+        return this.#message_element.innerText;
     }
 
     /**
@@ -492,7 +517,7 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {void}
      */
     set message(message) {
-        this.#shadow.querySelector(".message").innerText = message;
+        this.#message_element.innerText = message;
     }
 
     /**
@@ -507,32 +532,16 @@ export class FluxOverlayElement extends HTMLElement {
     }
 
     /**
-     * @param {string[] | boolean | null} validate_inputs
-     * @param {boolean | null} remove
-     * @returns {Promise<Result>}
-     */
-    async showAndWait(validate_inputs = null, remove = null) {
-        this.show();
-
-        return this.wait(
-            validate_inputs,
-            remove
-        );
-    }
-
-    /**
      * @param {boolean | null} loading
      * @returns {Promise<void>}
      */
     async showLoading(loading = null) {
-        const loading_element = this.#shadow.querySelector(".loading");
-
         const {
             FLUX_LOADING_SPINNER_ELEMENT_TAG_NAME,
             FluxLoadingSpinnerElement
         } = await import("../../flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs");
 
-        Array.from(loading_element.querySelectorAll(FLUX_LOADING_SPINNER_ELEMENT_TAG_NAME)).forEach(flux_loading_spinner_element => {
+        Array.from(this.#loading_element.querySelectorAll(FLUX_LOADING_SPINNER_ELEMENT_TAG_NAME)).forEach(flux_loading_spinner_element => {
             flux_loading_spinner_element.remove();
         });
 
@@ -540,14 +549,14 @@ export class FluxOverlayElement extends HTMLElement {
             return;
         }
 
-        loading_element.appendChild(FluxLoadingSpinnerElement.new());
+        this.#loading_element.appendChild(FluxLoadingSpinnerElement.new());
     }
 
     /**
      * @returns {string}
      */
     get title() {
-        return this.#shadow.querySelector(".title").innerText;
+        return this.#title_element.innerText;
     }
 
     /**
@@ -555,7 +564,7 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {void}
      */
     set title(title) {
-        this.#shadow.querySelector(".title").innerText = title;
+        this.#title_element.innerText = title;
     }
 
     /**
@@ -563,12 +572,11 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {boolean}
      */
     validateInputs(report = null) {
-        const inputs_element = this.#shadow.querySelector(".inputs");
-
-        if (!inputs_element.checkValidity()) {
+        if (!this.#inputs_element.checkValidity()) {
             if (report ?? true) {
-                inputs_element.reportValidity();
+                this.#inputs_element.reportValidity();
             }
+
             return false;
         }
 
@@ -576,11 +584,16 @@ export class FluxOverlayElement extends HTMLElement {
     }
 
     /**
+     * @param {boolean | null} show
      * @param {string[] | boolean | null} validate_inputs
      * @param {boolean | null} remove
      * @returns {Promise<Result>}
      */
-    async wait(validate_inputs = null, remove = null) {
+    async wait(show = null, validate_inputs = null, remove = null) {
+        if (show ?? true) {
+            this.show();
+        }
+
         let resolve_promise;
 
         const promise = new Promise(resolve => {
@@ -600,6 +613,7 @@ export class FluxOverlayElement extends HTMLElement {
             if (Array.isArray(_validate_inputs) ? _validate_inputs.includes(e.detail.button) : _validate_inputs) {
                 if (!this.validateInputs()) {
                     resolve_promise(this.wait(
+                        show,
                         validate_inputs,
                         remove
                     ));
@@ -617,6 +631,63 @@ export class FluxOverlayElement extends HTMLElement {
         });
 
         return promise;
+    }
+
+    /**
+     * @returns {HTMLButtonElement[]}
+     */
+    get #button_elements() {
+        return Array.from(this.#buttons_element.querySelectorAll("button"));
+    }
+
+    /**
+     * @returns {HTMLFormElement}
+     */
+    get #buttons_element() {
+        return this.#shadow.querySelector(".buttons");
+    }
+
+    /**
+     * @returns {(HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement)[]}
+     */
+    get #input_elements() {
+        return Array.from(this.#inputs_element.elements);
+    }
+
+    /**
+     * @returns {HTMLFormElement}
+     */
+    get #inputs_element() {
+        return this.#shadow.querySelector(".inputs");
+    }
+
+    /**
+     * @returns {HTMLDivElement}
+     */
+    get #loading_element() {
+        return this.#shadow.querySelector(".loading");
+    }
+
+    /**
+     * @returns {HTMLDivElement}
+     */
+    get #message_element() {
+        return this.#shadow.querySelector(".message");
+    }
+
+    /**
+     * @returns {HTMLDivElement}
+     */
+    get #title_element() {
+        return this.#shadow.querySelector(".title");
+    }
+
+    /**
+     * @param {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} input_element
+     * @returns {string | number | null}
+     */
+    #valueFromInputElement(input_element) {
+        return input_element.type === "number" ? !Number.isNaN(input_element.valueAsNumber) ? input_element.valueAsNumber : null : input_element.value;
     }
 }
 

@@ -32,10 +32,7 @@
     height: auto;
     margin-top: 10px;
     max-width: 100%;
-    overflow: hidden;
     text-align: center;
-    text-overflow: ellipsis;
-    white-space: nowrap;
     width: auto;
 }
 
@@ -57,31 +54,47 @@
     width: auto;
 }
 
-input,
-select,
-textarea {
+label {
+    display: block;
+    flex-grow: 0;
+    flex-shrink: 0;
+    height: auto;
+    width: 100%;
+}
+
+.label {
+    font-size: 16px;
+    font-weight: bold;
+    height: auto;
+    margin-top: 2px;
+    width: 100%;
+}
+
+:where(input, select, textarea) {
     background-color: var(--flux-overlay-input-background-color);
     border: 1px solid var(--flux-overlay-input-border-color);
     border-radius: 0;
     box-sizing: content-box;
     color: var(--flux-overlay-input-foreground-color);
+    display: block;
     font-family: inherit;
     font-size: 16px;
     height: 25px;
-    max-width: 100%;
     outline: none;
     padding: 2px 5px;
-    width: auto;
+    width: calc(100% - 12px);
 }
 
-input:not(:first-child),
-select:not(:first-child),
-textarea:not(:first-child) {
+label:not(:first-child) .label:empty + :where(input, select, textarea) {
     border-top: none;
 }
 
-select[multiple] {
-    height: auto;
+.label:not(:empty) + :where(input, textarea):read-only {
+    background-color: transparent;
+    border: none;
+    padding-left: 0;
+    padding-right: 0;
+    width: 100%;
 }
 
 textarea {
@@ -90,22 +103,25 @@ textarea {
     resize: vertical;
 }
 
-input:not(:disabled):invalid,
-select:not(:disabled):invalid,
-textarea:not(:disabled):invalid {
+select[multiple] {
+    height: auto;
+}
+
+.label:empty + :where(input, select, textarea):not(:disabled):invalid {
     border-bottom-color: var(--flux-overlay-input-invalid-border-color);
 }
 
-input:not(:disabled):focus-visible,
-select:not(:disabled):focus-visible,
-textarea:not(:disabled):focus-visible {
+.label:not(:empty) + :where(input, select, textarea):not(:disabled):invalid {
+    border-color: var(--flux-overlay-input-invalid-border-color);
+}
+
+:where(input, textarea):not(:read-only):not(:disabled):focus-visible,
+select:not(:disabled):focus-visible {
     outline: 2px solid var(--flux-overlay-input-focus-outline-color);
     outline-offset: -2px;
 }
 
-input:disabled,
-select:disabled,
-textarea:disabled {
+:where(input, select, textarea):disabled {
     opacity: 0.6;
 }
 
@@ -134,16 +150,17 @@ button {
     border-radius: 0;
     color: var(--flux-overlay-button-foreground-color);
     cursor: default;
+    flex-grow: 0;
+    flex-shrink: 0;
     font-size: 16px;
     height: 30px;
-    max-width: 100%;
     outline: none;
     overflow: hidden;
     padding: 0 10px;
     text-align: center;
     text-overflow: ellipsis;
     white-space: nowrap;
-    width: auto;
+    width: 100%;
 }
 
 button:not(:disabled) {
@@ -159,8 +176,7 @@ button:disabled {
     opacity: 0.6;
 }
 
-button:not(:disabled):hover,
-button:not(:disabled):active {
+button:not(:disabled):where(:hover, :active) {
     background-color: var(--flux-overlay-active-button-background-color);
     color: var(--flux-overlay-active-button-foreground-color);
 }
@@ -175,10 +191,6 @@ button:not(:disabled):active {
    width: 0;
 }
 
-.title:empty,
-.message:empty,
-.inputs:empty,
-.loading:empty,
-.buttons:empty {
+:where(.title, .message, .inputs, .label, .loading, .buttons):empty {
     display: none;
 }
