@@ -464,9 +464,16 @@ export class FluxOverlayElement extends HTMLElement {
                     input_element.valueAsNumber = value;
                 }
             } else {
-                const value = input.value ?? "";
-                if (value !== "") {
-                    input_element.value = value;
+                if (type === "checkbox") {
+                    const value = input.value ?? null;
+                    if (value !== null) {
+                        input_element.checked = value;
+                    }
+                } else {
+                    const value = input.value ?? "";
+                    if (value !== "") {
+                        input_element.value = value;
+                    }
                 }
             }
 
@@ -684,10 +691,10 @@ export class FluxOverlayElement extends HTMLElement {
 
     /**
      * @param {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} input_element
-     * @returns {string | number | null}
+     * @returns {string | number | boolean | null}
      */
     #valueFromInputElement(input_element) {
-        return input_element.type === "number" ? !Number.isNaN(input_element.valueAsNumber) ? input_element.valueAsNumber : null : input_element.value;
+        return input_element.type === "number" ? !Number.isNaN(input_element.valueAsNumber) ? input_element.valueAsNumber : null : input_element.type === "checkbox" ? input_element.checked : input_element.value;
     }
 }
 

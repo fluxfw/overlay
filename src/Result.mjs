@@ -1,3 +1,3 @@
 /**
- * @typedef {{button: string, inputs: {[key: string]: string | number | null}}} Result
+ * @typedef {{button: string, inputs: {[key: string]: string | number | boolean | null}}} Result
  */
