@@ -310,7 +310,7 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {Input[]}
      */
     get inputs() {
-        return this.#input_elements.map(input_element => ({
+        return this.#input_elements.filter(input_element => input_element.name !== "").map(input_element => ({
             disabled: input_element.disabled,
             "input-mode": input_element.inputMode ?? "",
             label: input_element.previousElementSibling.innerText,
@@ -661,7 +661,7 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {(HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement)[]}
      */
     get #input_elements() {
-        return Array.from(this.#inputs_element.elements).filter(input_element => input_element.name !== "");
+        return Array.from(this.#inputs_element.elements);
     }
 
     /**
