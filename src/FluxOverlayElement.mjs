@@ -399,7 +399,10 @@ export class FluxOverlayElement extends HTMLElement {
                 input_element.multiple = input.multiple ?? false;
             }
 
-            input_element.name = input.name;
+            const name = input.name ?? "";
+            if (name !== "") {
+                input_element.name = name;
+            }
 
             if (type === "select") {
                 const options = input.options ?? [];
@@ -658,7 +661,7 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {(HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement)[]}
      */
     get #input_elements() {
-        return Array.from(this.#inputs_element.elements);
+        return Array.from(this.#inputs_element.elements).filter(input_element => input_element.name !== "");
     }
 
     /**

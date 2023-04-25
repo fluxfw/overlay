@@ -102,6 +102,14 @@ label:not(:first-child) .label:empty + :is(input, select, textarea) {
     width: 100%;
 }
 
+input[type="checkbox"] {
+    width: 25px;
+}
+
+input[type="checkbox"]:not(:disabled) {
+    cursor: pointer;
+}
+
 select[multiple] {
     height: auto;
 }
