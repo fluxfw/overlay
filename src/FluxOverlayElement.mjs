@@ -1,4 +1,5 @@
 import { flux_css_api } from "../../flux-css-api/src/FluxCssApi.mjs";
+import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_NUMBER, INPUT_TYPE_SELECT, INPUT_TYPE_TEXT, INPUT_TYPE_TEXTAREA } from "./INPUT_TYPE.mjs";
 
 /** @typedef {import("./Button.mjs").Button} Button */
 /** @typedef {import("./Input.mjs").Input} Input */
@@ -333,7 +334,7 @@ export class FluxOverlayElement extends HTMLElement {
             required: input_element.required,
             step: input_element.step ?? "",
             title: input_element.title,
-            type: input_element instanceof HTMLSelectElement ? "select" : input_element.type,
+            type: input_element instanceof HTMLSelectElement ? INPUT_TYPE_SELECT : input_element.type,
             value: this.#valueFromInputElement(
                 input_element
             )
@@ -364,9 +365,9 @@ export class FluxOverlayElement extends HTMLElement {
             label_element.innerText = input.label ?? "";
             container_element.appendChild(label_element);
 
-            const type = input.type ?? "text";
+            const type = input.type ?? INPUT_TYPE_TEXT;
 
-            const input_element = document.createElement(type === "select" || type === "textarea" ? type : "input");
+            const input_element = document.createElement(type === INPUT_TYPE_SELECT || type === INPUT_TYPE_TEXTAREA ? type : "input");
 
             input_element.disabled = input.disabled ?? false;
 
@@ -404,7 +405,7 @@ export class FluxOverlayElement extends HTMLElement {
                 input_element.name = name;
             }
 
-            if (type === "select") {
+            if (type === INPUT_TYPE_SELECT) {
                 const options = input.options ?? [];
 
                 for (const option of options) {
@@ -461,13 +462,13 @@ export class FluxOverlayElement extends HTMLElement {
                 input_element.type = type;
             }
 
-            if (type === "number") {
+            if (type === INPUT_TYPE_NUMBER) {
                 const value = input.value ?? null;
                 if (value !== null) {
                     input_element.valueAsNumber = value;
                 }
             } else {
-                if (type === "checkbox") {
+                if (type === INPUT_TYPE_CHECKBOX) {
                     const value = input.value ?? null;
                     if (value !== null) {
                         input_element.checked = value;
@@ -697,7 +698,7 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {string | number | boolean | null}
      */
     #valueFromInputElement(input_element) {
-        return input_element.type === "number" ? !Number.isNaN(input_element.valueAsNumber) ? input_element.valueAsNumber : null : input_element.type === "checkbox" ? input_element.checked : input_element.value;
+        return input_element.type === INPUT_TYPE_NUMBER ? !Number.isNaN(input_element.valueAsNumber) ? input_element.valueAsNumber : null : input_element.type === INPUT_TYPE_CHECKBOX ? input_element.checked : input_element.value;
     }
 }
 
