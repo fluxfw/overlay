@@ -137,6 +137,15 @@ textarea {
     opacity: 0.6;
 }
 
+.subtitle {
+    font-size: 14px;
+    font-style: italic;
+    height: auto;
+    margin: 2px 0;
+    opacity: 0.9;
+    width: 100%;
+}
+
 .loading {
     --flux-loading-spinner-color: var(--flux-overlay-loading-color);
     height: auto;
@@ -203,6 +212,6 @@ button:not(:disabled):is(:hover, :active) {
    width: 0;
 }
 
-:is(.title, .message, .inputs, .label, .loading, .buttons):empty {
+:is(.title, .message, .inputs, .label, .subtitle, .loading, .buttons):empty {
     display: none;
 }

@@ -333,6 +333,7 @@ export class FluxOverlayElement extends HTMLElement {
             "read-only": input_element.readOnly ?? false,
             required: input_element.required,
             step: input_element.step ?? "",
+            subtitle: input_element.nextElementSibling.innerText,
             title: input_element.title,
             type: input_element instanceof HTMLSelectElement ? INPUT_TYPE_SELECT : input_element.type,
             value: this.#valueFromInputElement(
@@ -504,6 +505,11 @@ export class FluxOverlayElement extends HTMLElement {
             });
 
             container_element.appendChild(input_element);
+
+            const subtitle_element = document.createElement("div");
+            subtitle_element.classList.add("subtitle");
+            subtitle_element.innerText = input.subtitle ?? "";
+            container_element.appendChild(subtitle_element);
 
             this.#inputs_element.appendChild(container_element);
         }
