@@ -1,8 +1,10 @@
 import { flux_css_api } from "../../flux-css-api/src/FluxCssApi.mjs";
-import { INPUT_TYPE_CHECKBOX, INPUT_TYPE_NUMBER, INPUT_TYPE_SELECT, INPUT_TYPE_TEXT, INPUT_TYPE_TEXTAREA } from "./INPUT_TYPE.mjs";
 
 /** @typedef {import("./Button.mjs").Button} Button */
-/** @typedef {import("./Input.mjs").Input} Input */
+/** @typedef {import("../../flux-form/src/FluxFormElement.mjs").FluxFormElement} FluxFormElement */
+/** @typedef {import("../../flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs").FluxLoadingSpinnerElement} FluxLoadingSpinnerElement */
+/** @typedef {import("../../flux-form/src/Input.mjs").Input} Input */
+/** @typedef {import("../../flux-form/src/InputValue.mjs").InputValue} InputValue */
 /** @typedef {import("./Result.mjs").Result} Result */
 
 flux_css_api.adopt(
@@ -18,10 +20,16 @@ const css = await flux_css_api.import(
 );
 
 export const FLUX_OVERLAY_BUTTON_CLICK_EVENT = "flux-overlay-button-click";
-export const FLUX_OVERLAY_INPUT_CHANGE_EVENT = "flux-overlay-input-change";
-export const FLUX_OVERLAY_INPUT_INPUT_EVENT = "flux-overlay-input-input";
 
 export class FluxOverlayElement extends HTMLElement {
+    /**
+     * @type {FluxFormElement | null}
+     */
+    #flux_form_element = null;
+    /**
+     * @type {FluxLoadingSpinnerElement | null}
+     */
+    #flux_loading_spinner_element = null;
     /**
      * @type {ShadowRoot}
      */
@@ -128,7 +136,7 @@ export class FluxOverlayElement extends HTMLElement {
             return null;
         }
 
-        return result.inputs.input;
+        return result.inputs.find(value => value.name === "input").value;
     }
 
     /**
@@ -139,27 +147,29 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {Promise<Result>}
      */
     static async wait(title = null, message = null, inputs = null, buttons = null) {
-        return this.new(
+        const flux_overlay_element = this.new(
             title,
             message,
-            inputs,
             buttons
-        )
-            .wait();
+        );
+
+        await flux_overlay_element.setInputs(
+            inputs ?? []
+        );
+
+        return flux_overlay_element.wait();
     }
 
     /**
      * @param {string | null} title
      * @param {string | null} message
-     * @param {Input[] | null} inputs
      * @param {Button[] | null} buttons
      * @returns {FluxOverlayElement}
      */
-    static new(title = null, message = null, inputs = null, buttons = null) {
+    static new(title = null, message = null, buttons = null) {
         return new this(
             title ?? "",
             message ?? "",
-            inputs ?? [],
             buttons ?? []
         );
     }
@@ -167,11 +177,10 @@ export class FluxOverlayElement extends HTMLElement {
     /**
      * @param {string} title
      * @param {string} message
-     * @param {Input[]} inputs
      * @param {Button[]} buttons
      * @private
      */
-    constructor(title, message, inputs, buttons) {
+    constructor(title, message, buttons) {
         super();
 
         this.#shadow = this.attachShadow({
@@ -194,11 +203,8 @@ export class FluxOverlayElement extends HTMLElement {
         message_element.classList.add("message");
         container_element.appendChild(message_element);
 
-        const inputs_element = document.createElement("form");
+        const inputs_element = document.createElement("div");
         inputs_element.classList.add("inputs");
-        inputs_element.addEventListener("submit", e => {
-            e.preventDefault();
-        });
         container_element.appendChild(inputs_element);
 
         const loading_element = document.createElement("div");
@@ -213,7 +219,6 @@ export class FluxOverlayElement extends HTMLElement {
 
         this.title = title;
         this.message = message;
-        this.inputs = inputs;
         this.buttons = buttons;
     }
 
@@ -280,10 +285,7 @@ export class FluxOverlayElement extends HTMLElement {
                 this.dispatchEvent(new CustomEvent(FLUX_OVERLAY_BUTTON_CLICK_EVENT, {
                     detail: {
                         button: button_element.value,
-                        inputs: Object.fromEntries(this.inputs.map(input => [
-                            input.name,
-                            input.value
-                        ]))
+                        inputs: this.input_values
                     }
                 }));
             });
@@ -311,215 +313,21 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {Input[]}
      */
     get inputs() {
-        return this.#input_elements.filter(input_element => input_element.name !== "").map(input_element => ({
-            disabled: input_element.disabled,
-            "input-mode": input_element.inputMode ?? "",
-            label: input_element.previousElementSibling.innerText,
-            max: input_element.max ?? "",
-            "max-length": input_element.maxLength ?? -1,
-            min: input_element.min ?? "",
-            "min-length": input_element.minLength ?? -1,
-            multiple: input_element.multiple ?? false,
-            name: input_element.name,
-            options: Array.from(input_element.querySelectorAll("option")).map(option_element => ({
-                disabled: option_element.disabled,
-                label: option_element.label,
-                selected: option_element.selected,
-                title: option_element.title,
-                value: option_element.value
-            })),
-            pattern: input_element.pattern ?? "",
-            placeholder: input_element.placeholder ?? "",
-            "read-only": input_element.readOnly ?? false,
-            required: input_element.required,
-            step: input_element.step ?? "",
-            subtitle: input_element.nextElementSibling.innerText,
-            title: input_element.title,
-            type: input_element instanceof HTMLSelectElement ? INPUT_TYPE_SELECT : input_element.type,
-            value: this.#valueFromInputElement(
-                input_element
-            )
-        }));
+        return this.#flux_form_element?.inputs ?? [];
     }
 
     /**
-     * @param {Input[] | boolean} inputs
-     * @returns {void}
+     * @returns {InputValue[]}
      */
-    set inputs(inputs) {
-        if (typeof inputs === "boolean") {
-            for (const input_element of this.#input_elements) {
-                input_element.disabled = inputs;
-            }
-            return;
-        }
-
-        this.#input_elements.forEach(input_element => {
-            input_element.parentElement.remove();
-        });
-
-        for (const input of inputs) {
-            const container_element = document.createElement("label");
-
-            const label_element = document.createElement("div");
-            label_element.classList.add("label");
-            label_element.innerText = input.label ?? "";
-            container_element.appendChild(label_element);
-
-            const type = input.type ?? INPUT_TYPE_TEXT;
-
-            const input_element = document.createElement(type === INPUT_TYPE_SELECT || type === INPUT_TYPE_TEXTAREA ? type : "input");
-
-            input_element.disabled = input.disabled ?? false;
-
-            const input_mode = input["input-mode"] ?? "";
-            if (input_mode !== "" && "inputMode" in input_element) {
-                input_element.inputMode = input_mode;
-            }
-
-            const max = input.max ?? "";
-            if (max !== "" && "max" in input_element) {
-                input_element.max = max;
-            }
-
-            const max_length = input["max-length"] ?? -1;
-            if (max_length !== -1 && "maxLength" in input_element) {
-                input_element.maxLength = max_length;
-            }
-
-            const min = input.min ?? "";
-            if (min !== "" && "min" in input_element) {
-                input_element.min = min;
-            }
-
-            const min_length = input["min-length"] ?? -1;
-            if (min_length !== -1 && "minLength" in input_element) {
-                input_element.minLength = min_length;
-            }
-
-            if ("multiple" in input_element) {
-                input_element.multiple = input.multiple ?? false;
-            }
-
-            const name = input.name ?? "";
-            if (name !== "") {
-                input_element.name = name;
-            }
-
-            if (type === INPUT_TYPE_SELECT) {
-                const options = input.options ?? [];
-
-                for (const option of options) {
-                    const option_element = document.createElement("option");
-
-                    option_element.disabled = option.disabled ?? false;
-
-                    option_element.label = option.label;
-
-                    option_element.selected = option.selected ?? false;
-
-                    const title = option.title ?? "";
-                    if (title !== "") {
-                        option_element.title = title;
-                    }
-
-                    option_element.value = option.value;
-
-                    input_element.appendChild(option_element);
-                }
-
-                if (input_element.multiple) {
-                    input_element.size = options.length;
-                }
-            }
-
-            const pattern = input.pattern ?? "";
-            if (pattern !== "" && "pattern" in input_element) {
-                input_element.pattern = pattern;
-            }
-
-            const placeholder = input.placeholder ?? "";
-            if (placeholder !== "" && "placeholder" in input_element) {
-                input_element.placeholder = placeholder;
-            }
-
-            if ("readOnly" in input_element) {
-                input_element.readOnly = input["read-only"] ?? false;
-            }
-
-            input_element.required = input.required ?? false;
-
-            const step = input.step ?? "";
-            if (step !== "" && "step" in input_element) {
-                input_element.step = step;
-            }
-
-            const title = input.title ?? "";
-            if (title !== "") {
-                input_element.title = title;
-            }
-
-            if (input_element instanceof HTMLInputElement) {
-                input_element.type = type;
-            }
-
-            if (type === INPUT_TYPE_NUMBER) {
-                const value = input.value ?? null;
-                if (value !== null) {
-                    input_element.valueAsNumber = value;
-                }
-            } else {
-                if (type === INPUT_TYPE_CHECKBOX) {
-                    const value = input.value ?? null;
-                    if (value !== null) {
-                        input_element.checked = value;
-                    }
-                } else {
-                    const value = input.value ?? "";
-                    if (value !== "") {
-                        input_element.value = value;
-                    }
-                }
-            }
-
-            input_element.addEventListener("change", () => {
-                this.dispatchEvent(new CustomEvent(FLUX_OVERLAY_INPUT_CHANGE_EVENT, {
-                    detail: {
-                        name: input_element.name,
-                        value: this.#valueFromInputElement(
-                            input_element
-                        )
-                    }
-                }));
-            });
-
-            input_element.addEventListener("input", () => {
-                this.dispatchEvent(new CustomEvent(FLUX_OVERLAY_INPUT_INPUT_EVENT, {
-                    detail: {
-                        name: input_element.name,
-                        value: this.#valueFromInputElement(
-                            input_element
-                        )
-                    }
-                }));
-            });
-
-            container_element.appendChild(input_element);
-
-            const subtitle_element = document.createElement("div");
-            subtitle_element.classList.add("subtitle");
-            subtitle_element.innerText = input.subtitle ?? "";
-            container_element.appendChild(subtitle_element);
-
-            this.#inputs_element.appendChild(container_element);
-        }
+    get input_values() {
+        return this.#flux_form_element?.values ?? [];
     }
 
     /**
      * @returns {boolean}
      */
     get loading() {
-        return this.#loading_element.children.length > 0;
+        return this.#flux_loading_spinner_element !== null;
     }
 
     /**
@@ -538,6 +346,30 @@ export class FluxOverlayElement extends HTMLElement {
     }
 
     /**
+     * @param {Input[] | boolean} inputs
+     * @returns {Promise<void>}
+     */
+    async setInputs(inputs) {
+        if (typeof inputs === "boolean" || inputs.length > 0) {
+            if (this.#flux_form_element === null) {
+                this.#flux_form_element ??= (await import("../../flux-form/src/FluxFormElement.mjs")).FluxFormElement.new();
+                this.#inputs_element.appendChild(this.#flux_form_element);
+            }
+
+            if (typeof inputs === "boolean") {
+                this.#flux_form_element.disabled = inputs;
+            } else {
+                this.#flux_form_element.inputs = inputs;
+            }
+        } else {
+            if (this.#flux_form_element !== null) {
+                this.#flux_form_element.remove();
+                this.#flux_form_element = null;
+            }
+        }
+    }
+
+    /**
      * @returns {void}
      */
     show() {
@@ -553,20 +385,17 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {Promise<void>}
      */
     async showLoading(loading = null) {
-        const {
-            FLUX_LOADING_SPINNER_ELEMENT_TAG_NAME,
-            FluxLoadingSpinnerElement
-        } = await import("../../flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs");
-
-        Array.from(this.#loading_element.querySelectorAll(FLUX_LOADING_SPINNER_ELEMENT_TAG_NAME)).forEach(flux_loading_spinner_element => {
-            flux_loading_spinner_element.remove();
-        });
-
-        if (!(loading ?? true)) {
-            return;
+        if (loading ?? true) {
+            if (this.#flux_loading_spinner_element === null) {
+                this.#flux_loading_spinner_element ??= (await import("../../flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs")).FluxLoadingSpinnerElement.new();
+                this.#loading_element.appendChild(this.#flux_loading_spinner_element);
+            }
+        } else {
+            if (this.#flux_loading_spinner_element !== null) {
+                this.#flux_loading_spinner_element.remove();
+                this.#flux_loading_spinner_element = null;
+            }
         }
-
-        this.#loading_element.appendChild(FluxLoadingSpinnerElement.new());
     }
 
     /**
@@ -589,15 +418,9 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {boolean}
      */
     validateInputs(report = null) {
-        if (!this.#inputs_element.checkValidity()) {
-            if (report ?? true) {
-                this.#inputs_element.reportValidity();
-            }
-
-            return false;
-        }
-
-        return true;
+        return this.#flux_form_element?.validateInputs(
+            report
+        ) ?? true;
     }
 
     /**
@@ -665,14 +488,7 @@ export class FluxOverlayElement extends HTMLElement {
     }
 
     /**
-     * @returns {(HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement)[]}
-     */
-    get #input_elements() {
-        return Array.from(this.#inputs_element.elements);
-    }
-
-    /**
-     * @returns {HTMLFormElement}
+     * @returns {HTMLDivElement}
      */
     get #inputs_element() {
         return this.#shadow.querySelector(".inputs");
@@ -697,14 +513,6 @@ export class FluxOverlayElement extends HTMLElement {
      */
     get #title_element() {
         return this.#shadow.querySelector(".title");
-    }
-
-    /**
-     * @param {HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement} input_element
-     * @returns {string | number | boolean | null}
-     */
-    #valueFromInputElement(input_element) {
-        return input_element.type === INPUT_TYPE_NUMBER ? !Number.isNaN(input_element.valueAsNumber) ? input_element.valueAsNumber : null : input_element.type === INPUT_TYPE_CHECKBOX ? input_element.checked : input_element.value;
     }
 }
 

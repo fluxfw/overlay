@@ -8,11 +8,6 @@
     --flux-overlay-container-background-color: var(--flux-color-scheme-background, #ffffff);
     --flux-overlay-container-border-color: var(--flux-color-scheme-foreground, #000000);
     --flux-overlay-container-foreground-color: var(--flux-color-scheme-foreground, #000000);
-    --flux-overlay-input-background-color: var(--flux-color-scheme-background, #ffffff);
-    --flux-overlay-input-border-color: var(--flux-color-scheme-foreground, #000000);
-    --flux-overlay-input-focus-outline-color: var(--flux-color-scheme-foreground, #000000);
-    --flux-overlay-input-foreground-color: var(--flux-color-scheme-foreground, #000000);
-    --flux-overlay-input-invalid-border-color: #ff0000;
     --flux-overlay-loading-color: var(--flux-color-scheme-accent, #000000);
     --flux-overlay-z-index: 2000;
 }

@@ -1,3 +1,5 @@
+/** @typedef {import("../../flux-form/src/InputValue.mjs").InputValue} InputValue */
+
 /**
- * @typedef {{button: string, inputs: {[key: string]: string | number | boolean | null}}} Result
+ * @typedef {{button: string, inputs: InputValue[]}} Result
  */

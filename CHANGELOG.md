@@ -6,6 +6,13 @@ Changes:
 
 \-
 
+## v2023-05-01-1
+
+Changes:
+
+- Split inputs to `flux-form`
+- Input values
+
 ## v2023-04-26-1
 
 Changes:
