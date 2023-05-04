@@ -1,4 +1,5 @@
 import { flux_css_api } from "../../flux-css-api/src/FluxCssApi.mjs";
+import { FLUX_OVERLAY_EVENT_BUTTON_CLICK, FLUX_OVERLAY_EVENT_INPUT_CHANGE, FLUX_OVERLAY_EVENT_INPUT_INPUT } from "./FLUX_OVERLAY_EVENT.mjs";
 
 /** @typedef {import("./Button.mjs").Button} Button */
 /** @typedef {import("../../flux-form/src/FluxFormElement.mjs").FluxFormElement} FluxFormElement */
@@ -18,8 +19,6 @@ flux_css_api.adopt(
 const css = await flux_css_api.import(
     `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxOverlayElement.css`
 );
-
-export const FLUX_OVERLAY_BUTTON_CLICK_EVENT = "flux-overlay-button-click";
 
 export class FluxOverlayElement extends HTMLElement {
     /**
@@ -282,7 +281,7 @@ export class FluxOverlayElement extends HTMLElement {
             button_element.value = button.value;
 
             button_element.addEventListener("click", () => {
-                this.dispatchEvent(new CustomEvent(FLUX_OVERLAY_BUTTON_CLICK_EVENT, {
+                this.dispatchEvent(new CustomEvent(FLUX_OVERLAY_EVENT_BUTTON_CLICK, {
                     detail: {
                         button: button_element.value,
                         inputs: this.input_values
@@ -352,7 +351,21 @@ export class FluxOverlayElement extends HTMLElement {
     async setInputs(inputs) {
         if (typeof inputs === "boolean" || inputs.length > 0) {
             if (this.#flux_form_element === null) {
+                const {
+                    FLUX_FORM_EVENT_CHANGE,
+                    FLUX_FORM_EVENT_INPUT
+                } = await import("../../flux-form/src/FLUX_FORM_EVENT.mjs");
                 this.#flux_form_element ??= (await import("../../flux-form/src/FluxFormElement.mjs")).FluxFormElement.new();
+                this.#flux_form_element.addEventListener(FLUX_FORM_EVENT_CHANGE, e => {
+                    this.dispatchEvent(new CustomEvent(FLUX_OVERLAY_EVENT_INPUT_CHANGE, {
+                        detail: e.detail
+                    }));
+                });
+                this.#flux_form_element.addEventListener(FLUX_FORM_EVENT_INPUT, e => {
+                    this.dispatchEvent(new CustomEvent(FLUX_OVERLAY_EVENT_INPUT_INPUT, {
+                        detail: e.detail
+                    }));
+                });
                 this.#inputs_element.appendChild(this.#flux_form_element);
             }
 
@@ -440,7 +453,7 @@ export class FluxOverlayElement extends HTMLElement {
             resolve_promise = resolve;
         });
 
-        this.addEventListener(FLUX_OVERLAY_BUTTON_CLICK_EVENT, e => {
+        this.addEventListener(FLUX_OVERLAY_EVENT_BUTTON_CLICK, e => {
             let _validate_inputs;
             if (validate_inputs === null) {
                 const {
