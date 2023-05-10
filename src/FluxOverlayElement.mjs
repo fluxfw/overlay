@@ -294,6 +294,26 @@ export class FluxOverlayElement extends HTMLElement {
     }
 
     /**
+     * @param {string} name
+     * @returns {Input | null}
+     */
+    getInputByName(name) {
+        return this.#flux_form_element?.getInputByName(
+            name
+        ) ?? null;
+    }
+
+    /**
+     * @param {string} name
+     * @returns {InputValue | null}
+     */
+    getInputValueByName(name) {
+        return this.#flux_form_element?.getValueByName(
+            name
+        ) ?? null;
+    }
+
+    /**
      * @returns {string}
      */
     get htmlTitle() {
@@ -309,6 +329,13 @@ export class FluxOverlayElement extends HTMLElement {
     }
 
     /**
+     * @returns {InputValue[]}
+     */
+    get input_values() {
+        return this.#flux_form_element?.values ?? [];
+    }
+
+    /**
      * @returns {Input[]}
      */
     get inputs() {
@@ -316,10 +343,10 @@ export class FluxOverlayElement extends HTMLElement {
     }
 
     /**
-     * @returns {InputValue[]}
+     * @returns {Input[]}
      */
-    get input_values() {
-        return this.#flux_form_element?.values ?? [];
+    get inputs_with_name() {
+        return this.#flux_form_element?.inputs_with_name ?? [];
     }
 
     /**
@@ -431,7 +458,7 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {boolean}
      */
     validateInputs(report = null) {
-        return this.#flux_form_element?.validateInputs(
+        return this.#flux_form_element?.validate(
             report
         ) ?? true;
     }
