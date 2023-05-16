@@ -46,6 +46,7 @@
 }
 
 .inputs {
+    --flux-form-background-color: var(--flux-overlay-container-background-color);
     height: auto;
     margin-top: 10px;
     max-width: 100%;
