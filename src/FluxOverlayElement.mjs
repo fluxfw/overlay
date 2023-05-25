@@ -7,6 +7,7 @@ import { FLUX_OVERLAY_EVENT_BUTTON_CLICK, FLUX_OVERLAY_EVENT_INPUT_CHANGE, FLUX_
 /** @typedef {import("../../flux-form/src/Input.mjs").Input} Input */
 /** @typedef {import("../../flux-form/src/InputValue.mjs").InputValue} InputValue */
 /** @typedef {import("./Result.mjs").Result} Result */
+/** @typedef {import("../../flux-form/src/validateValue.mjs").validateValue} validateValue */
 
 flux_css_api.adopt(
     document,
@@ -228,6 +229,18 @@ export class FluxOverlayElement extends HTMLElement {
         this.tabIndex = "-1";
         this.focus();
         this.removeAttribute("tabIndex");
+    }
+
+    /**
+     * @param {string} type
+     * @param {validateValue} validate_value
+     * @returns {void}
+     */
+    addInputAdditionalValidationType(type, validate_value) {
+        this.#flux_form_element?.addAdditionalValidationType(
+            type,
+            validate_value
+        );
     }
 
     /**
