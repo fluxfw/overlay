@@ -9,13 +9,11 @@ import { FLUX_OVERLAY_EVENT_BUTTON_CLICK, FLUX_OVERLAY_EVENT_INPUT_CHANGE, FLUX_
 /** @typedef {import("./Result.mjs").Result} Result */
 /** @typedef {import("../../flux-form/src/validateValue.mjs").validateValue} validateValue */
 
-flux_css_api.adopt(
-    document,
-    await flux_css_api.import(
-        `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxOverlayElementVariables.css`
-    ),
-    true
+const variables_css = await flux_css_api.import(
+    `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxOverlayElementVariables.css`
 );
+
+document.adoptedStyleSheets.unshift(variables_css);
 
 const css = await flux_css_api.import(
     `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxOverlayElement.css`
@@ -187,10 +185,7 @@ export class FluxOverlayElement extends HTMLElement {
             mode: "closed"
         });
 
-        flux_css_api.adopt(
-            this.#shadow,
-            css
-        );
+        this.#shadow.adoptedStyleSheets.push(css);
 
         const container_element = document.createElement("div");
         container_element.classList.add("container");
@@ -236,7 +231,7 @@ export class FluxOverlayElement extends HTMLElement {
      * @param {validateValue} validate_value
      * @returns {void}
      */
-    addInputAdditionalValidationType(type, validate_value) {
+    addAdditionalInputValidationType(type, validate_value) {
         this.#flux_form_element?.addAdditionalValidationType(
             type,
             validate_value
