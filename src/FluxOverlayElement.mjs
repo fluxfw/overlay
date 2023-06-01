@@ -463,9 +463,9 @@ export class FluxOverlayElement extends HTMLElement {
 
     /**
      * @param {boolean | null} report
-     * @returns {boolean}
+     * @returns {Promise<boolean>}
      */
-    validateInputs(report = null) {
+    async validateInputs(report = null) {
         return this.#flux_form_element?.validate(
             report
         ) ?? true;
@@ -488,7 +488,7 @@ export class FluxOverlayElement extends HTMLElement {
             resolve_promise = resolve;
         });
 
-        this.addEventListener(FLUX_OVERLAY_EVENT_BUTTON_CLICK, e => {
+        this.addEventListener(FLUX_OVERLAY_EVENT_BUTTON_CLICK, async e => {
             let _validate_inputs;
             if (validate_inputs === null) {
                 const {
@@ -499,7 +499,7 @@ export class FluxOverlayElement extends HTMLElement {
                 _validate_inputs = validate_inputs;
             }
             if (Array.isArray(_validate_inputs) ? _validate_inputs.includes(e.detail.button) : _validate_inputs) {
-                if (!this.validateInputs()) {
+                if (!await this.validateInputs()) {
                     resolve_promise(this.wait(
                         show,
                         validate_inputs,
