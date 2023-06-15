@@ -302,26 +302,6 @@ export class FluxOverlayElement extends HTMLElement {
     }
 
     /**
-     * @param {string} name
-     * @returns {Input | null}
-     */
-    getInputByName(name) {
-        return this.#flux_form_element?.getInputByName(
-            name
-        ) ?? null;
-    }
-
-    /**
-     * @param {string} name
-     * @returns {InputValue | null}
-     */
-    getInputValueByName(name) {
-        return this.#flux_form_element?.getValueByName(
-            name
-        ) ?? null;
-    }
-
-    /**
      * @returns {string}
      */
     get htmlTitle() {
@@ -405,9 +385,13 @@ export class FluxOverlayElement extends HTMLElement {
             }
 
             if (typeof inputs === "boolean") {
-                this.#flux_form_element.disabled = inputs;
+                await this.#flux_form_element.setDisabled(
+                    inputs
+                );
             } else {
-                this.#flux_form_element.inputs = inputs;
+                await this.#flux_form_element.setInputs(
+                    inputs
+                );
             }
         } else {
             if (this.#flux_form_element !== null) {
