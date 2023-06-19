@@ -331,13 +331,6 @@ export class FluxOverlayElement extends HTMLElement {
     }
 
     /**
-     * @returns {Input[]}
-     */
-    get inputs_with_name() {
-        return this.#flux_form_element?.inputs_with_name ?? [];
-    }
-
-    /**
      * @returns {boolean}
      */
     get loading() {
