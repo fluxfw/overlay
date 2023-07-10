@@ -9,11 +9,11 @@ import { FLUX_OVERLAY_EVENT_BUTTON_CLICK, FLUX_OVERLAY_EVENT_INPUT_CHANGE, FLUX_
 /** @typedef {import("./Result.mjs").Result} Result */
 /** @typedef {import("../../flux-form/src/validateValue.mjs").validateValue} validateValue */
 
-const variables_css = await flux_css_api.import(
-    `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxOverlayElementVariables.css`
+const root_css = await flux_css_api.import(
+    `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxOverlayElementRoot.css`
 );
 
-document.adoptedStyleSheets.unshift(variables_css);
+document.adoptedStyleSheets.unshift(root_css);
 
 const css = await flux_css_api.import(
     `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxOverlayElement.css`
@@ -192,25 +192,25 @@ export class FluxOverlayElement extends HTMLElement {
 
         const title_element = document.createElement("div");
         title_element.classList.add("title");
-        container_element.appendChild(title_element);
+        container_element.append(title_element);
 
         const message_element = document.createElement("div");
         message_element.classList.add("message");
-        container_element.appendChild(message_element);
+        container_element.append(message_element);
 
         const inputs_element = document.createElement("div");
         inputs_element.classList.add("inputs");
-        container_element.appendChild(inputs_element);
+        container_element.append(inputs_element);
 
         const loading_element = document.createElement("div");
         loading_element.classList.add("loading");
-        container_element.appendChild(loading_element);
+        container_element.append(loading_element);
 
         const buttons_element = document.createElement("div");
         buttons_element.classList.add("buttons");
-        container_element.appendChild(buttons_element);
+        container_element.append(buttons_element);
 
-        this.#shadow.appendChild(container_element);
+        this.#shadow.append(container_element);
 
         this.title = title;
         this.message = message;
@@ -297,7 +297,7 @@ export class FluxOverlayElement extends HTMLElement {
                 }));
             });
 
-            this.#buttons_element.appendChild(button_element);
+            this.#buttons_element.append(button_element);
         }
     }
 
@@ -374,7 +374,7 @@ export class FluxOverlayElement extends HTMLElement {
                         detail: e.detail
                     }));
                 });
-                this.#inputs_element.appendChild(this.#flux_form_element);
+                this.#inputs_element.append(this.#flux_form_element);
             }
 
             if (typeof inputs === "boolean") {
@@ -402,7 +402,7 @@ export class FluxOverlayElement extends HTMLElement {
             return;
         }
 
-        document.body.appendChild(this);
+        document.body.append(this);
     }
 
     /**
@@ -413,7 +413,7 @@ export class FluxOverlayElement extends HTMLElement {
         if (loading ?? true) {
             if (this.#flux_loading_spinner_element === null) {
                 this.#flux_loading_spinner_element ??= (await import("../../flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs")).FluxLoadingSpinnerElement.new();
-                this.#loading_element.appendChild(this.#flux_loading_spinner_element);
+                this.#loading_element.append(this.#flux_loading_spinner_element);
             }
         } else {
             if (this.#flux_loading_spinner_element !== null) {
