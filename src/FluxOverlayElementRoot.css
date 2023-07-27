@@ -1,13 +1,15 @@
-:root {
-    --flux-overlay-active-button-background-color: var(--flux-color-scheme-foreground-color, #000000);
-    --flux-overlay-active-button-foreground-color: var(--flux-color-scheme-background-color, #ffffff);
+:root, :host {
+    --flux-overlay-active-button-background-color: #000000;
+    --flux-overlay-active-button-foreground-color: #ffffff;
     --flux-overlay-background-color: rgba(0, 0, 0, 0.2);
-    --flux-overlay-button-background-color: var(--flux-color-scheme-accent-color, #000000);
-    --flux-overlay-button-focus-outline-color: var(--flux-color-scheme-foreground-color, #000000);
-    --flux-overlay-button-foreground-color: var(--flux-color-scheme-accent-color-foreground-color, #ffffff);
-    --flux-overlay-container-background-color: var(--flux-color-scheme-background-color, #ffffff);
-    --flux-overlay-container-border-color: var(--flux-color-scheme-foreground-color, #000000);
-    --flux-overlay-container-foreground-color: var(--flux-color-scheme-foreground-color, #000000);
-    --flux-overlay-loading-color: var(--flux-color-scheme-accent-color, #000000);
+    --flux-overlay-button-background-color: #000000;
+    --flux-overlay-button-focus-outline-color: #000000;
+    --flux-overlay-button-foreground-color: #ffffff;
+    --flux-overlay-container-background-color: #ffffff;
+    --flux-overlay-container-border-color: #000000;
+    --flux-overlay-container-foreground-color: #000000;
+    --flux-overlay-loading-color: #000000;
+    --flux-overlay-loading-size: 100px;
+    --flux-overlay-loading-width: 2px;
     --flux-overlay-z-index: 2000;
 }

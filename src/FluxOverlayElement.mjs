@@ -1,5 +1,4 @@
-import { flux_css_api } from "../../flux-css-api/src/FluxCssApi.mjs";
-import { FLUX_OVERLAY_EVENT_BUTTON_CLICK, FLUX_OVERLAY_EVENT_INPUT_CHANGE, FLUX_OVERLAY_EVENT_INPUT_INPUT } from "./FLUX_OVERLAY_EVENT.mjs";
+import { flux_import_css } from "../../flux-style-sheet-manager/src/FluxImportCss.mjs";
 
 /** @typedef {import("./Button.mjs").Button} Button */
 /** @typedef {import("../../flux-form/src/FluxFormElement.mjs").FluxFormElement} FluxFormElement */
@@ -7,17 +6,24 @@ import { FLUX_OVERLAY_EVENT_BUTTON_CLICK, FLUX_OVERLAY_EVENT_INPUT_CHANGE, FLUX_
 /** @typedef {import("../../flux-form/src/Input.mjs").Input} Input */
 /** @typedef {import("../../flux-form/src/InputValue.mjs").InputValue} InputValue */
 /** @typedef {import("./Result.mjs").Result} Result */
+/** @typedef {import("./StyleSheetManager/StyleSheetManager.mjs").StyleSheetManager} StyleSheetManager */
 /** @typedef {import("../../flux-form/src/validateValue.mjs").validateValue} validateValue */
 
-const root_css = await flux_css_api.import(
+const root_css = await flux_import_css.import(
     `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxOverlayElementRoot.css`
 );
 
-document.adoptedStyleSheets.unshift(root_css);
-
-const css = await flux_css_api.import(
+const css = await flux_import_css.import(
     `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxOverlayElement.css`
 );
+
+export const FLUX_OVERLAY_ELEMENT_EVENT_BUTTON_CLICK = "flux-overlay-button-click";
+
+export const FLUX_OVERLAY_ELEMENT_EVENT_INPUT_CHANGE = "flux-overlay-input-change";
+
+export const FLUX_OVERLAY_ELEMENT_EVENT_INPUT_INPUT = "flux-overlay-input-input";
+
+export const FLUX_OVERLAY_ELEMENT_VARIABLE_PREFIX = "--flux-overlay-";
 
 export class FluxOverlayElement extends HTMLElement {
     /**
@@ -32,14 +38,19 @@ export class FluxOverlayElement extends HTMLElement {
      * @type {ShadowRoot}
      */
     #shadow;
+    /**
+     * @type {StyleSheetManager | null}
+     */
+    #style_sheet_manager;
 
     /**
      * @param {string | null} title
      * @param {string | null} message
      * @param {string} ok_button_label
+     * @param {StyleSheetManager | null} style_sheet_manager
      * @returns {Promise<void>}
      */
-    static async alert(title, message, ok_button_label) {
+    static async alert(title, message, ok_button_label, style_sheet_manager = null) {
         await this.wait(
             title,
             message,
@@ -49,7 +60,8 @@ export class FluxOverlayElement extends HTMLElement {
                     label: ok_button_label,
                     value: "ok"
                 }
-            ]
+            ],
+            style_sheet_manager
         );
     }
 
@@ -58,9 +70,10 @@ export class FluxOverlayElement extends HTMLElement {
      * @param {string | null} message
      * @param {string} no_button_label
      * @param {string} yes_button_label
+     * @param {StyleSheetManager | null} style_sheet_manager
      * @returns {Promise<boolean>}
      */
-    static async confirm(title, message, no_button_label, yes_button_label) {
+    static async confirm(title, message, no_button_label, yes_button_label, style_sheet_manager = null) {
         return (await this.wait(
             title,
             message,
@@ -74,20 +87,25 @@ export class FluxOverlayElement extends HTMLElement {
                     label: yes_button_label,
                     value: "yes"
                 }
-            ]
+            ],
+            style_sheet_manager
         )).button === "yes";
     }
 
     /**
+     * @param {StyleSheetManager | null} style_sheet_manager
      * @returns {Promise<FluxOverlayElement>}
      */
-    static async loading() {
-        const flux_overlay_element = this.new();
+    static async loading(style_sheet_manager = null) {
+        const flux_overlay_element = await this.new(
+            null,
+            null,
+            null,
+            style_sheet_manager
+        );
 
-        flux_overlay_element.style.setProperty("--flux-loading-spinner-size", "100px");
-        flux_overlay_element.style.setProperty("--flux-loading-spinner-width", "2px");
-        flux_overlay_element.style.setProperty("--flux-overlay-container-background-color", "transparent");
-        flux_overlay_element.style.setProperty("--flux-overlay-container-border-color", "transparent");
+        flux_overlay_element.style.setProperty(`${FLUX_OVERLAY_ELEMENT_VARIABLE_PREFIX}container-background-color`, "transparent");
+        flux_overlay_element.style.setProperty(`${FLUX_OVERLAY_ELEMENT_VARIABLE_PREFIX}container-border-color`, "transparent");
 
         await flux_overlay_element.showLoading();
 
@@ -103,9 +121,10 @@ export class FluxOverlayElement extends HTMLElement {
      * @param {string | null} input_value
      * @param {string | null} cancel_button_label
      * @param {string} ok_button_label
+     * @param {StyleSheetManager | null} style_sheet_manager
      * @returns {Promise<string | null>}
      */
-    static async prompt(title, message, input_placeholder, input_value, cancel_button_label, ok_button_label) {
+    static async prompt(title, message, input_placeholder, input_value, cancel_button_label, ok_button_label, style_sheet_manager = null) {
         const result = await this.wait(
             title,
             message,
@@ -127,7 +146,8 @@ export class FluxOverlayElement extends HTMLElement {
                     label: ok_button_label,
                     value: "ok"
                 }
-            ]
+            ],
+            style_sheet_manager
         );
 
         if (result.button !== "ok") {
@@ -142,13 +162,15 @@ export class FluxOverlayElement extends HTMLElement {
      * @param {string | null} message
      * @param {Input[] | null} inputs
      * @param {Button[] | null} buttons
+     * @param {StyleSheetManager | null} style_sheet_manager
      * @returns {Promise<Result>}
      */
-    static async wait(title = null, message = null, inputs = null, buttons = null) {
-        const flux_overlay_element = this.new(
+    static async wait(title = null, message = null, inputs = null, buttons = null, style_sheet_manager = null) {
+        const flux_overlay_element = await this.new(
             title,
             message,
-            buttons
+            buttons,
+            style_sheet_manager
         );
 
         await flux_overlay_element.setInputs(
@@ -162,13 +184,42 @@ export class FluxOverlayElement extends HTMLElement {
      * @param {string | null} title
      * @param {string | null} message
      * @param {Button[] | null} buttons
-     * @returns {FluxOverlayElement}
+     * @param {StyleSheetManager | null} style_sheet_manager
+     * @returns {Promise<FluxOverlayElement>}
      */
-    static new(title = null, message = null, buttons = null) {
+    static async new(title = null, message = null, buttons = null, style_sheet_manager = null) {
+        if (style_sheet_manager !== null) {
+            await style_sheet_manager.generateVariableStyleSheet(
+                this.name,
+                {
+                    [`${FLUX_OVERLAY_ELEMENT_VARIABLE_PREFIX}active-button-background-color`]: "foreground-color",
+                    [`${FLUX_OVERLAY_ELEMENT_VARIABLE_PREFIX}active-button-foreground-color`]: "background-color",
+                    [`${FLUX_OVERLAY_ELEMENT_VARIABLE_PREFIX}button-background-color`]: "accent-color",
+                    [`${FLUX_OVERLAY_ELEMENT_VARIABLE_PREFIX}button-focus-outline-color`]: "foreground-color",
+                    [`${FLUX_OVERLAY_ELEMENT_VARIABLE_PREFIX}button-foreground-color`]: "accent-color-foreground-color",
+                    [`${FLUX_OVERLAY_ELEMENT_VARIABLE_PREFIX}container-background-color`]: "background-color",
+                    [`${FLUX_OVERLAY_ELEMENT_VARIABLE_PREFIX}container-border-color`]: "foreground-color",
+                    [`${FLUX_OVERLAY_ELEMENT_VARIABLE_PREFIX}container-foreground-color`]: "foreground-color",
+                    [`${FLUX_OVERLAY_ELEMENT_VARIABLE_PREFIX}loading-color`]: "accent-color"
+                },
+                true
+            );
+
+            await style_sheet_manager.addStyleSheet(
+                root_css,
+                true
+            );
+        } else {
+            if (!document.adoptedStyleSheets.includes(root_css)) {
+                document.adoptedStyleSheets.unshift(root_css);
+            }
+        }
+
         return new this(
             title ?? "",
             message ?? "",
-            buttons ?? []
+            buttons ?? [],
+            style_sheet_manager
         );
     }
 
@@ -176,10 +227,13 @@ export class FluxOverlayElement extends HTMLElement {
      * @param {string} title
      * @param {string} message
      * @param {Button[]} buttons
+     * @param {StyleSheetManager | null} style_sheet_manager
      * @private
      */
-    constructor(title, message, buttons) {
+    constructor(title, message, buttons, style_sheet_manager) {
         super();
+
+        this.#style_sheet_manager = style_sheet_manager;
 
         this.#shadow = this.attachShadow({
             mode: "closed"
@@ -229,10 +283,10 @@ export class FluxOverlayElement extends HTMLElement {
     /**
      * @param {string} type
      * @param {validateValue} validate_value
-     * @returns {void}
+     * @returns {Promise<void>}
      */
-    addAdditionalInputValidationType(type, validate_value) {
-        this.#flux_form_element?.addAdditionalValidationType(
+    async addAdditionalInputValidationType(type, validate_value) {
+        await this.#flux_form_element?.addAdditionalValidationType(
             type,
             validate_value
         );
@@ -289,7 +343,7 @@ export class FluxOverlayElement extends HTMLElement {
             button_element.value = button.value;
 
             button_element.addEventListener("click", () => {
-                this.dispatchEvent(new CustomEvent(FLUX_OVERLAY_EVENT_BUTTON_CLICK, {
+                this.dispatchEvent(new CustomEvent(FLUX_OVERLAY_ELEMENT_EVENT_BUTTON_CLICK, {
                     detail: {
                         button: button_element.value,
                         inputs: this.input_values
@@ -360,17 +414,22 @@ export class FluxOverlayElement extends HTMLElement {
         if (typeof inputs === "boolean" || inputs.length > 0) {
             if (this.#flux_form_element === null) {
                 const {
-                    FLUX_FORM_EVENT_CHANGE,
-                    FLUX_FORM_EVENT_INPUT
-                } = await import("../../flux-form/src/FLUX_FORM_EVENT.mjs");
-                this.#flux_form_element ??= (await import("../../flux-form/src/FluxFormElement.mjs")).FluxFormElement.new();
-                this.#flux_form_element.addEventListener(FLUX_FORM_EVENT_CHANGE, e => {
-                    this.dispatchEvent(new CustomEvent(FLUX_OVERLAY_EVENT_INPUT_CHANGE, {
+                    FLUX_FORM_ELEMENT_EVENT_CHANGE,
+                    FLUX_FORM_ELEMENT_EVENT_INPUT,
+                    FluxFormElement
+                } = await import("../../flux-form/src/FluxFormElement.mjs");
+
+                this.#flux_form_element ??= await FluxFormElement.new(
+                    null,
+                    this.#style_sheet_manager
+                );
+                this.#flux_form_element.addEventListener(FLUX_FORM_ELEMENT_EVENT_CHANGE, e => {
+                    this.dispatchEvent(new CustomEvent(FLUX_OVERLAY_ELEMENT_EVENT_INPUT_CHANGE, {
                         detail: e.detail
                     }));
                 });
-                this.#flux_form_element.addEventListener(FLUX_FORM_EVENT_INPUT, e => {
-                    this.dispatchEvent(new CustomEvent(FLUX_OVERLAY_EVENT_INPUT_INPUT, {
+                this.#flux_form_element.addEventListener(FLUX_FORM_ELEMENT_EVENT_INPUT, e => {
+                    this.dispatchEvent(new CustomEvent(FLUX_OVERLAY_ELEMENT_EVENT_INPUT_INPUT, {
                         detail: e.detail
                     }));
                 });
@@ -412,7 +471,9 @@ export class FluxOverlayElement extends HTMLElement {
     async showLoading(loading = null) {
         if (loading ?? true) {
             if (this.#flux_loading_spinner_element === null) {
-                this.#flux_loading_spinner_element ??= (await import("../../flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs")).FluxLoadingSpinnerElement.new();
+                this.#flux_loading_spinner_element ??= await (await import("../../flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs")).FluxLoadingSpinnerElement.new(
+                    this.#style_sheet_manager
+                );
                 this.#loading_element.append(this.#flux_loading_spinner_element);
             }
         } else {
@@ -465,7 +526,7 @@ export class FluxOverlayElement extends HTMLElement {
             resolve_promise = resolve;
         });
 
-        this.addEventListener(FLUX_OVERLAY_EVENT_BUTTON_CLICK, async e => {
+        this.addEventListener(FLUX_OVERLAY_ELEMENT_EVENT_BUTTON_CLICK, async e => {
             let _validate_inputs;
             if (validate_inputs === null) {
                 const {
