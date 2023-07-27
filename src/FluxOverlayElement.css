@@ -59,8 +59,6 @@
 
 .loading {
     --flux-loading-spinner-color: var(--flux-overlay-loading-color);
-    --flux-loading-spinner-size: var(--flux-overlay-loading-size);
-    --flux-loading-spinner-width: var(--flux-overlay-loading-width);
     height: auto;
     margin-top: 10px;
     max-width: 100%;

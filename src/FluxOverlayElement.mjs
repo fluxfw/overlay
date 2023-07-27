@@ -107,7 +107,10 @@ export class FluxOverlayElement extends HTMLElement {
         flux_overlay_element.style.setProperty(`${FLUX_OVERLAY_ELEMENT_VARIABLE_PREFIX}container-background-color`, "transparent");
         flux_overlay_element.style.setProperty(`${FLUX_OVERLAY_ELEMENT_VARIABLE_PREFIX}container-border-color`, "transparent");
 
-        await flux_overlay_element.showLoading();
+        await flux_overlay_element.showLoading(
+            null,
+            true
+        );
 
         flux_overlay_element.show();
 
@@ -466,14 +469,26 @@ export class FluxOverlayElement extends HTMLElement {
 
     /**
      * @param {boolean | null} loading
+     * @param {boolean | null} size
      * @returns {Promise<void>}
      */
-    async showLoading(loading = null) {
+    async showLoading(loading = null, size = null) {
         if (loading ?? true) {
             if (this.#flux_loading_spinner_element === null) {
-                this.#flux_loading_spinner_element ??= await (await import("../../flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs")).FluxLoadingSpinnerElement.new(
+                const {
+                    FLUX_LOADING_SPINNER_ELEMENT_VARIABLE_PREFIX,
+                    FluxLoadingSpinnerElement
+                } = await import("../../flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs");
+
+                this.#flux_loading_spinner_element ??= await FluxLoadingSpinnerElement.new(
                     this.#style_sheet_manager
                 );
+
+                if (size ?? false) {
+                    this.#loading_element.style.setProperty(`${FLUX_LOADING_SPINNER_ELEMENT_VARIABLE_PREFIX}size`, `var(${FLUX_OVERLAY_ELEMENT_VARIABLE_PREFIX}loading-size)`);
+                    this.#loading_element.style.setProperty(`${FLUX_LOADING_SPINNER_ELEMENT_VARIABLE_PREFIX}width`, `var(${FLUX_OVERLAY_ELEMENT_VARIABLE_PREFIX}loading-width`);
+                }
+
                 this.#loading_element.append(this.#flux_loading_spinner_element);
             }
         } else {
