@@ -257,9 +257,9 @@ export class FluxOverlayElement extends HTMLElement {
 
         flux_overlay_element.#shadow.append(container_element);
 
-        this.title = title ?? "";
-        this.message = message ?? "";
-        this.buttons = buttons ?? [];
+        flux_overlay_element.title = title ?? "";
+        flux_overlay_element.message = message ?? "";
+        flux_overlay_element.buttons = buttons ?? [];
 
         return flux_overlay_element;
     }
