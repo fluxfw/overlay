@@ -192,7 +192,7 @@ export class FluxOverlayElement extends HTMLElement {
      */
     static async new(title = null, message = null, buttons = null, style_sheet_manager = null) {
         if (style_sheet_manager !== null) {
-            await style_sheet_manager.generateVariableStyleSheet(
+            await style_sheet_manager.generateVariablesRootStyleSheet(
                 this.name,
                 {
                     [`${FLUX_OVERLAY_ELEMENT_VARIABLE_PREFIX}active-button-background-color`]: "foreground-color",
@@ -208,7 +208,7 @@ export class FluxOverlayElement extends HTMLElement {
                 true
             );
 
-            await style_sheet_manager.addStyleSheet(
+            await style_sheet_manager.addRootStyleSheet(
                 root_css,
                 true
             );
@@ -218,31 +218,19 @@ export class FluxOverlayElement extends HTMLElement {
             }
         }
 
-        return new this(
-            title ?? "",
-            message ?? "",
-            buttons ?? [],
+        const flux_overlay_element = new this(
             style_sheet_manager
         );
-    }
 
-    /**
-     * @param {string} title
-     * @param {string} message
-     * @param {Button[]} buttons
-     * @param {StyleSheetManager | null} style_sheet_manager
-     * @private
-     */
-    constructor(title, message, buttons, style_sheet_manager) {
-        super();
-
-        this.#style_sheet_manager = style_sheet_manager;
-
-        this.#shadow = this.attachShadow({
+        flux_overlay_element.#shadow = flux_overlay_element.attachShadow({
             mode: "closed"
         });
 
-        this.#shadow.adoptedStyleSheets.push(css);
+        await flux_overlay_element.#style_sheet_manager?.addStyleSheetsToShadow(
+            flux_overlay_element.#shadow
+        );
+
+        flux_overlay_element.#shadow.adoptedStyleSheets.push(css);
 
         const container_element = document.createElement("div");
         container_element.classList.add("container");
@@ -267,11 +255,23 @@ export class FluxOverlayElement extends HTMLElement {
         buttons_element.classList.add("buttons");
         container_element.append(buttons_element);
 
-        this.#shadow.append(container_element);
+        flux_overlay_element.#shadow.append(container_element);
 
-        this.title = title;
-        this.message = message;
-        this.buttons = buttons;
+        this.title = title ?? "";
+        this.message = message ?? "";
+        this.buttons = buttons ?? [];
+
+        return flux_overlay_element;
+    }
+
+    /**
+     * @param {StyleSheetManager | null} style_sheet_manager
+     * @private
+     */
+    constructor(style_sheet_manager) {
+        super();
+
+        this.#style_sheet_manager = style_sheet_manager;
     }
 
     /**
