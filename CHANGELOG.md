@@ -6,6 +6,13 @@ Changes:
 
 \-
 
+## v2024-01-09-1
+
+Changes:
+
+- Set `inert` to other elements
+- Remove font family from buttons
+
 ## v2023-12-04-1
 
 Changes:

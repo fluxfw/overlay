@@ -35,6 +35,10 @@ export class FluxOverlayElement extends HTMLElement {
      */
     #flux_loading_spinner_element = null;
     /**
+     * @type {Element[] | null}
+     */
+    #inerts = null;
+    /**
      * @type {ShadowRoot}
      */
     #shadow;
@@ -278,9 +282,33 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {void}
      */
     connectedCallback() {
-        this.tabIndex = "-1";
-        this.focus();
-        this.removeAttribute("tabIndex");
+        let element = this;
+
+        while ((element = element.previousElementSibling) !== null) {
+            element.inert = true;
+
+            this.#inerts ??= [];
+            this.#inerts.push(element);
+
+            if (element instanceof this.constructor) {
+                break;
+            }
+        }
+    }
+
+    /**
+     * @returns {void}
+     */
+    disconnectedCallback() {
+        if (this.#inerts === null) {
+            return;
+        }
+
+        this.#inerts.forEach(element => {
+            element.inert = false;
+        });
+
+        this.#inerts = [];
     }
 
     /**
