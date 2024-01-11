@@ -35,9 +35,9 @@ export class FluxOverlayElement extends HTMLElement {
      */
     #flux_loading_spinner_element = null;
     /**
-     * @type {Element[] | null}
+     * @type {Element | null}
      */
-    #inerts = null;
+    #parent_element = null;
     /**
      * @type {ShadowRoot}
      */
@@ -282,16 +282,15 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {void}
      */
     connectedCallback() {
-        let element = this;
+        this.#parent_element = this.parentElement;
 
-        while ((element = element.previousElementSibling) !== null) {
-            element.inert = true;
+        const sibling_elements = this.#sibling_elements;
 
-            this.#inerts ??= [];
-            this.#inerts.push(element);
-
-            if (element instanceof this.constructor) {
-                break;
+        for (const sibling_element of sibling_elements) {
+            if (sibling_element !== sibling_elements[sibling_elements.length - 1]) {
+                sibling_element.inert = true;
+            } else {
+                sibling_element.inert = false;
             }
         }
     }
@@ -300,15 +299,25 @@ export class FluxOverlayElement extends HTMLElement {
      * @returns {void}
      */
     disconnectedCallback() {
-        if (this.#inerts === null) {
+        if (this.#parent_element === null) {
             return;
         }
 
-        this.#inerts.forEach(element => {
-            element.inert = false;
-        });
+        const sibling_elements = this.#sibling_elements;
 
-        this.#inerts = [];
+        const last_sibling_element = sibling_elements[sibling_elements.length - 1];
+
+        const has_flux_overlay_element = last_sibling_element instanceof this.constructor;
+
+        for (const sibling_element of this.#parent_element.children) {
+            if (has_flux_overlay_element && sibling_element !== last_sibling_element) {
+                sibling_element.inert = true;
+            } else {
+                sibling_element.inert = false;
+            }
+        }
+
+        this.#parent_element = null;
     }
 
     /**
@@ -635,6 +644,35 @@ export class FluxOverlayElement extends HTMLElement {
      */
     get #message_element() {
         return this.#shadow.querySelector(".message");
+    }
+
+    /**
+     * @returns {Element[]}
+     */
+    get #sibling_elements() {
+        return Array.from(this.#parent_element.children).sort((element_1, element_2) => {
+            const is_flux_overlay_element_1 = element_1 instanceof this.constructor;
+            const is_flux_overlay_element_2 = element_2 instanceof this.constructor;
+
+            if (is_flux_overlay_element_1 > is_flux_overlay_element_2) {
+                return 1;
+            }
+            if (is_flux_overlay_element_1 < is_flux_overlay_element_2) {
+                return -1;
+            }
+
+            const z_index_1 = is_flux_overlay_element_1 ? getComputedStyle(element_1)["z-index"] : "";
+            const z_index_2 = is_flux_overlay_element_2 ? getComputedStyle(element_2)["z-index"] : "";
+
+            if (z_index_1 > z_index_2) {
+                return 1;
+            }
+            if (z_index_1 < z_index_2) {
+                return -1;
+            }
+
+            return 0;
+        });
     }
 
     /**

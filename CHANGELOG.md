@@ -6,6 +6,12 @@ Changes:
 
 \-
 
+## v2024-01-11-1
+
+Changes:
+
+- Make set `inert` work with `z-index`
+
 ## v2024-01-09-1
 
 Changes:
