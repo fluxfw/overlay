@@ -1,21 +1,14 @@
-import { flux_import_css } from "../../flux-style-sheet-manager/src/FluxImportCss.mjs";
+import css from "./FluxOverlayElement.css" with { type: "css" };
+import root_css from "./FluxOverlayElementRoot.css" with { type: "css" };
 
 /** @typedef {import("./Button.mjs").Button} Button */
-/** @typedef {import("../../flux-form/src/FluxFormElement.mjs").FluxFormElement} FluxFormElement */
-/** @typedef {import("../../flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs").FluxLoadingSpinnerElement} FluxLoadingSpinnerElement */
-/** @typedef {import("../../flux-form/src/Input.mjs").Input} Input */
-/** @typedef {import("../../flux-form/src/InputValue.mjs").InputValue} InputValue */
+/** @typedef {import("flux-form/src/FluxFormElement.mjs").FluxFormElement} FluxFormElement */
+/** @typedef {import("flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs").FluxLoadingSpinnerElement} FluxLoadingSpinnerElement */
+/** @typedef {import("flux-form/src/Input.mjs").Input} Input */
+/** @typedef {import("flux-form/src/InputValue.mjs").InputValue} InputValue */
 /** @typedef {import("./Result.mjs").Result} Result */
 /** @typedef {import("./StyleSheetManager/StyleSheetManager.mjs").StyleSheetManager} StyleSheetManager */
-/** @typedef {import("../../flux-form/src/validateValue.mjs").validateValue} validateValue */
-
-const root_css = await flux_import_css.import(
-    `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxOverlayElementRoot.css`
-);
-
-const css = await flux_import_css.import(
-    `${import.meta.url.substring(0, import.meta.url.lastIndexOf("/"))}/FluxOverlayElement.css`
-);
+/** @typedef {import("flux-form/src/validateValue.mjs").validateValue} validateValue */
 
 export const FLUX_OVERLAY_ELEMENT_EVENT_BUTTON_CLICK = "flux-overlay-button-click";
 
@@ -457,7 +450,7 @@ export class FluxOverlayElement extends HTMLElement {
                     FLUX_FORM_ELEMENT_EVENT_CHANGE,
                     FLUX_FORM_ELEMENT_EVENT_INPUT,
                     FluxFormElement
-                } = await import("../../flux-form/src/FluxFormElement.mjs");
+                } = await import("flux-form/src/FluxFormElement.mjs");
 
                 this.#flux_form_element ??= await FluxFormElement.new(
                     null,
@@ -515,7 +508,7 @@ export class FluxOverlayElement extends HTMLElement {
                 const {
                     FLUX_LOADING_SPINNER_ELEMENT_VARIABLE_PREFIX,
                     FluxLoadingSpinnerElement
-                } = await import("../../flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs");
+                } = await import("flux-loading-spinner/src/FluxLoadingSpinnerElement.mjs");
 
                 this.#flux_loading_spinner_element ??= await FluxLoadingSpinnerElement.new(
                     this.#style_sheet_manager
