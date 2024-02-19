@@ -130,6 +130,7 @@ export class FluxOverlayElement extends HTMLElement {
             message,
             [
                 {
+                    autoFocus: true,
                     name: "input",
                     placeholder: input_placeholder,
                     value: input_value
