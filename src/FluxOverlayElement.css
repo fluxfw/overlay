@@ -26,6 +26,11 @@
     width: auto;
 }
 
+.container:focus-visible {
+    outline: 2px solid var(--flux-overlay-container-focus-outline-color);
+    outline-offset: -2px;
+}
+
 .title {
     font-size: 20px;
     font-weight: bold;
@@ -67,7 +72,7 @@
 
 .buttons {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 10px;
     height: auto;
     margin-top: 10px;
@@ -82,8 +87,8 @@ button {
     border-radius: 0;
     color: var(--flux-overlay-button-foreground-color);
     cursor: default;
-    flex-grow: 0;
-    flex-shrink: 0;
+    flex-grow: 1;
+    flex-shrink: 1;
     font-family: unset;
     font-size: 16px;
     height: 30px;
@@ -93,7 +98,7 @@ button {
     text-align: center;
     text-overflow: ellipsis;
     white-space: nowrap;
-    width: 100%;
+    width: 0;
 }
 
 button:not(:disabled) {
@@ -121,14 +126,14 @@ button:not(:disabled):active {
     }
 }
 
-.buttons[data-confirm] {
-    flex-direction: row;
+.buttons[data-vertical] {
+    flex-direction: column;
 }
 
-.buttons[data-confirm] button {
-   flex-grow: 1;
-   flex-shrink: 1;
-   width: 0;
+.buttons[data-vertical] button {
+   flex-grow: 0;
+   flex-shrink: 0;
+   width: 100%;
 }
 
 :is(.title, .message, .inputs, .loading, .buttons):empty {

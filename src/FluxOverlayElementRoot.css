@@ -7,6 +7,7 @@
     --flux-overlay-button-foreground-color: #ffffff;
     --flux-overlay-container-background-color: #ffffff;
     --flux-overlay-container-border-color: #000000;
+    --flux-overlay-container-focus-outline-color: #000000;
     --flux-overlay-container-foreground-color: #000000;
     --flux-overlay-loading-color: #000000;
     --flux-overlay-loading-size: 100px;

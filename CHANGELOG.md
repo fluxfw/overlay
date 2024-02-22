@@ -6,6 +6,15 @@ Changes:
 
 \-
 
+## v2024-02-22-1
+
+Changes:
+
+- `buttons_vertical` is now a config instead depends on buttons count
+- Change focus on scrollable container (Firefox based browsers)
+- Use `Promise.withResolvers`
+- Rename `htmlTitle` to `html_title`
+
 ## v2024-02-19-2
 
 Changes:

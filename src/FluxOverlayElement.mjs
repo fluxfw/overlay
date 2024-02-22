@@ -200,6 +200,7 @@ export class FluxOverlayElement extends HTMLElement {
                     [`${FLUX_OVERLAY_ELEMENT_VARIABLE_PREFIX}button-foreground-color`]: "accent-color-foreground-color",
                     [`${FLUX_OVERLAY_ELEMENT_VARIABLE_PREFIX}container-background-color`]: "background-color",
                     [`${FLUX_OVERLAY_ELEMENT_VARIABLE_PREFIX}container-border-color`]: "foreground-color",
+                    [`${FLUX_OVERLAY_ELEMENT_VARIABLE_PREFIX}container-focus-outline-color`]: "foreground-color",
                     [`${FLUX_OVERLAY_ELEMENT_VARIABLE_PREFIX}container-foreground-color`]: "foreground-color",
                     [`${FLUX_OVERLAY_ELEMENT_VARIABLE_PREFIX}loading-color`]: "accent-color"
                 },
@@ -354,12 +355,6 @@ export class FluxOverlayElement extends HTMLElement {
             button_element.remove();
         });
 
-        if (buttons.length === 2) {
-            this.#buttons_element.dataset.confirm = true;
-        } else {
-            delete this.#buttons_element.dataset.confirm;
-        }
-
         for (const button of buttons) {
             const button_element = document.createElement("button");
 
@@ -390,18 +385,37 @@ export class FluxOverlayElement extends HTMLElement {
     }
 
     /**
+     * @returns {boolean}
+     */
+    get buttons_vertical() {
+        return this.#buttons_element.dataset.vertical === "true";
+    }
+
+    /**
+     * @param {boolean} buttons_vertical
+     * @returns {void}
+     */
+    set buttons_vertical(buttons_vertical) {
+        if (buttons_vertical) {
+            this.#buttons_element.dataset.vertical = true;
+        } else {
+            delete this.#buttons_element.dataset.vertical;
+        }
+    }
+
+    /**
      * @returns {string}
      */
-    get htmlTitle() {
+    get html_title() {
         return super.title;
     }
 
     /**
-     * @param {string} title
+     * @param {string} html_title
      * @returns {void}
      */
-    set htmlTitle(title) {
-        super.title = title;
+    set html_title(html_title) {
+        super.title = html_title;
     }
 
     /**
@@ -566,11 +580,10 @@ export class FluxOverlayElement extends HTMLElement {
             this.show();
         }
 
-        let resolve_promise;
-
-        const promise = new Promise(resolve => {
-            resolve_promise = resolve;
-        });
+        const {
+            promise,
+            resolve
+        } = Promise.withResolvers();
 
         this.addEventListener(FLUX_OVERLAY_ELEMENT_EVENT_BUTTON_CLICK, async e => {
             let _validate_inputs;
@@ -584,7 +597,7 @@ export class FluxOverlayElement extends HTMLElement {
             }
             if (Array.isArray(_validate_inputs) ? _validate_inputs.includes(e.detail.button) : _validate_inputs) {
                 if (!await this.validateInputs()) {
-                    resolve_promise(this.wait(
+                    resolve(this.wait(
                         show,
                         validate_inputs,
                         remove
@@ -597,7 +610,7 @@ export class FluxOverlayElement extends HTMLElement {
                 this.remove();
             }
 
-            resolve_promise(e.detail);
+            resolve(e.detail);
         }, {
             once: true
         });
