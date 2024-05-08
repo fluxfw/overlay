@@ -1,0 +1,16 @@
+:root, :host {
+    --overlay-active-button-background-color: #000000;
+    --overlay-active-button-foreground-color: #ffffff;
+    --overlay-background-color: rgba(0, 0, 0, 0.2);
+    --overlay-button-background-color: #000000;
+    --overlay-button-focus-outline-color: #000000;
+    --overlay-button-foreground-color: #ffffff;
+    --overlay-container-background-color: #ffffff;
+    --overlay-container-border-color: #000000;
+    --overlay-container-focus-outline-color: #000000;
+    --overlay-container-foreground-color: #000000;
+    --overlay-loading-color: #000000;
+    --overlay-loading-size: 100px;
+    --overlay-loading-width: 2px;
+    --overlay-z-index: 2000;
+}

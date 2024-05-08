@@ -1,6 +1,6 @@
 :host {
     align-items: center;
-    background-color: var(--flux-overlay-background-color);
+    background-color: var(--overlay-background-color);
     bottom: 0;
     display: flex;
     flex-direction: column;
@@ -9,13 +9,13 @@
     position: fixed;
     right: 0;
     top: 0;
-    z-index: var(--flux-overlay-z-index);
+    z-index: var(--overlay-z-index);
 }
 
 .container {
-    background-color: var(--flux-overlay-container-background-color);
-    border: 1px solid var(--flux-overlay-container-border-color);
-    color: var(--flux-overlay-container-foreground-color);
+    background-color: var(--overlay-container-background-color);
+    border: 1px solid var(--overlay-container-border-color);
+    color: var(--overlay-container-foreground-color);
     height: auto;
     max-height: calc(100% - 42px);
     max-width: calc(100% - 42px);
@@ -27,7 +27,7 @@
 }
 
 .container:focus-visible {
-    outline: 2px solid var(--flux-overlay-container-focus-outline-color);
+    outline: 2px solid var(--overlay-container-focus-outline-color);
     outline-offset: -2px;
 }
 
@@ -51,11 +51,11 @@
 }
 
 .inputs {
-    --flux-form-background-color: var(--flux-overlay-container-background-color);
-    --flux-form-button-background-color: var(--flux-overlay-button-background-color);
-    --flux-form-button-focus-outline-color: var(--flux-overlay-button-focus-outline-color);
-    --flux-form-button-foreground-color: var(--flux-overlay-button-foreground-color);
-    --flux-form-foreground-color: var(--flux-overlay-container-foreground-color);
+    --form-background-color: var(--overlay-container-background-color);
+    --form-button-background-color: var(--overlay-button-background-color);
+    --form-button-focus-outline-color: var(--overlay-button-focus-outline-color);
+    --form-button-foreground-color: var(--overlay-button-foreground-color);
+    --form-foreground-color: var(--overlay-container-foreground-color);
     height: auto;
     margin-top: 10px;
     max-width: 100%;
@@ -63,7 +63,7 @@
 }
 
 .loading {
-    --flux-loading-spinner-color: var(--flux-overlay-loading-color);
+    --loading-spinner-color: var(--overlay-loading-color);
     height: auto;
     margin-top: 10px;
     max-width: 100%;
@@ -82,10 +82,10 @@
 
 button {
     -webkit-tap-highlight-color: transparent;
-    background-color: var(--flux-overlay-button-background-color);
+    background-color: var(--overlay-button-background-color);
     border: none;
     border-radius: 0;
-    color: var(--flux-overlay-button-foreground-color);
+    color: var(--overlay-button-foreground-color);
     cursor: default;
     flex-grow: 1;
     flex-shrink: 1;
@@ -106,7 +106,7 @@ button:not(:disabled) {
 }
 
 button:not(:disabled):focus-visible {
-    outline: 2px solid var(--flux-overlay-button-focus-outline-color);
+    outline: 2px solid var(--overlay-button-focus-outline-color);
     outline-offset: -2px;
 }
 
@@ -115,14 +115,14 @@ button:disabled {
 }
 
 button:not(:disabled):active {
-    background-color: var(--flux-overlay-active-button-background-color);
-    color: var(--flux-overlay-active-button-foreground-color);
+    background-color: var(--overlay-active-button-background-color);
+    color: var(--overlay-active-button-foreground-color);
 }
 
 @media (hover: hover) {
     button:not(:disabled):hover {
-        background-color: var(--flux-overlay-active-button-background-color);
-        color: var(--flux-overlay-active-button-foreground-color);
+        background-color: var(--overlay-active-button-background-color);
+        color: var(--overlay-active-button-foreground-color);
     }
 }
 
