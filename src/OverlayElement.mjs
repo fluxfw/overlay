@@ -690,6 +690,6 @@ export class OverlayElement extends HTMLElement {
     }
 }
 
-export const OVERLAY_ELEMENT_TAG_NAME = "overlay";
+export const OVERLAY_ELEMENT_TAG_NAME = "overlay-overlay";
 
 customElements.define(OVERLAY_ELEMENT_TAG_NAME, OverlayElement);
