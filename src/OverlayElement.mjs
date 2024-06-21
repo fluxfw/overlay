@@ -98,14 +98,13 @@ export class OverlayElement extends HTMLElement {
             null,
             null,
             null,
+            null,
             style_sheet_manager
         );
 
-        overlay_element.style.setProperty(`${OVERLAY_ELEMENT_VARIABLE_PREFIX}container-background-color`, "transparent");
-        overlay_element.style.setProperty(`${OVERLAY_ELEMENT_VARIABLE_PREFIX}container-border-color`, "transparent");
-
         await overlay_element.showLoading(
             null,
+            true,
             true
         );
 
@@ -137,7 +136,7 @@ export class OverlayElement extends HTMLElement {
                 }
             ],
             [
-                ...(cancel_button_label ?? null) !== null ? [
+                ...cancel_button_label !== null ? [
                     {
                         label: cancel_button_label,
                         value: "cancel"
@@ -145,6 +144,7 @@ export class OverlayElement extends HTMLElement {
                 ] : [],
                 {
                     label: ok_button_label,
+                    "validate-inputs": true,
                     value: "ok"
                 }
             ],
@@ -167,28 +167,24 @@ export class OverlayElement extends HTMLElement {
      * @returns {Promise<Result>}
      */
     static async wait(title = null, message = null, inputs = null, buttons = null, style_sheet_manager = null) {
-        const overlay_element = await this.new(
+        return (await this.new(
             title,
             message,
+            inputs,
             buttons,
             style_sheet_manager
-        );
-
-        await overlay_element.setInputs(
-            inputs ?? []
-        );
-
-        return overlay_element.wait();
+        )).wait();
     }
 
     /**
      * @param {string | null} title
      * @param {string | null} message
+     * @param {Input[] | null} inputs
      * @param {Button[] | null} buttons
      * @param {StyleSheetManager | null} style_sheet_manager
      * @returns {Promise<OverlayElement>}
      */
-    static async new(title = null, message = null, buttons = null, style_sheet_manager = null) {
+    static async new(title = null, message = null, inputs = null, buttons = null, style_sheet_manager = null) {
         if (style_sheet_manager !== null) {
             await style_sheet_manager.generateVariablesRootStyleSheet(
                 OVERLAY_ELEMENT_VARIABLE_PREFIX,
@@ -256,9 +252,13 @@ export class OverlayElement extends HTMLElement {
 
         overlay_element.#shadow.append(container_element);
 
-        overlay_element.title = title ?? "";
-        overlay_element.message = message ?? "";
-        overlay_element.buttons = buttons ?? [];
+        overlay_element.title = title;
+
+        overlay_element.message = message;
+
+        overlay_element.inputs = inputs;
+
+        overlay_element.buttons = buttons;
 
         return overlay_element;
     }
@@ -282,11 +282,7 @@ export class OverlayElement extends HTMLElement {
         const sibling_elements = this.#sibling_elements;
 
         for (const sibling_element of sibling_elements) {
-            if (sibling_element !== sibling_elements[sibling_elements.length - 1]) {
-                sibling_element.inert = true;
-            } else {
-                sibling_element.inert = false;
-            }
+            sibling_element.inert = sibling_element !== sibling_elements[sibling_elements.length - 1];
         }
     }
 
@@ -305,11 +301,7 @@ export class OverlayElement extends HTMLElement {
         const has_overlay_element = last_sibling_element instanceof this.constructor;
 
         for (const sibling_element of this.#parent_element.children) {
-            if (has_overlay_element && sibling_element !== last_sibling_element) {
-                sibling_element.inert = true;
-            } else {
-                sibling_element.inert = false;
-            }
+            sibling_element.inert = has_overlay_element && sibling_element !== last_sibling_element;
         }
 
         this.#parent_element = null;
@@ -335,15 +327,17 @@ export class OverlayElement extends HTMLElement {
             disabled: button_element.disabled,
             label: button_element.innerText,
             title: button_element.title,
-            value: button_element.value
+            "validate-inputs": button_element.dataset.validate_inputs === "true",
+            value: button_element.value,
+            wide: button_element.dataset.wide === "true"
         }));
     }
 
     /**
-     * @param {Button[] | boolean} buttons
+     * @param {Button[] | boolean | null} buttons
      * @returns {void}
      */
-    set buttons(buttons) {
+    set buttons(buttons = null) {
         if (typeof buttons === "boolean") {
             for (const button_element of this.#button_elements) {
                 button_element.disabled = buttons;
@@ -355,29 +349,33 @@ export class OverlayElement extends HTMLElement {
             button_element.remove();
         });
 
-        for (const button of buttons) {
+        for (const button of buttons ?? []) {
             const button_element = document.createElement("button");
+
+            if (button["validate-inputs"] ?? false) {
+                button_element.dataset.validate_inputs = true;
+            }
+
+            if (button.wide ?? false) {
+                button_element.dataset.wide = true;
+            }
 
             button_element.disabled = button.disabled ?? false;
 
             button_element.innerText = button.label;
 
-            const title = button.title ?? "";
-            if (title !== "") {
-                button_element.title = title;
+            if ((button.title ?? "") !== "") {
+                button_element.title = button.title;
             }
 
             button_element.type = "button";
 
             button_element.value = button.value;
 
-            button_element.addEventListener("click", () => {
-                this.dispatchEvent(new CustomEvent(OVERLAY_ELEMENT_EVENT_BUTTON_CLICK, {
-                    detail: {
-                        button: button_element.value,
-                        inputs: this.input_values
-                    }
-                }));
+            button_element.addEventListener("click", async () => {
+                await this.close(
+                    button_element.value
+                );
             });
 
             this.#buttons_element.append(button_element);
@@ -385,22 +383,24 @@ export class OverlayElement extends HTMLElement {
     }
 
     /**
-     * @returns {boolean}
+     * @param {string} button
+     * @param {boolean | null} validate_inputs
+     * @returns {Promise<Result>}
      */
-    get buttons_vertical() {
-        return this.#buttons_element.dataset.vertical === "true";
-    }
+    async close(button, validate_inputs = null) {
+        queueMicrotask(() => {
+            this.dispatchEvent(new CustomEvent(OVERLAY_ELEMENT_EVENT_BUTTON_CLICK, {
+                detail: {
+                    button,
+                    inputs: this.input_values
+                }
+            }));
+        });
 
-    /**
-     * @param {boolean} buttons_vertical
-     * @returns {void}
-     */
-    set buttons_vertical(buttons_vertical) {
-        if (buttons_vertical) {
-            this.#buttons_element.dataset.vertical = true;
-        } else {
-            delete this.#buttons_element.dataset.vertical;
-        }
+        return this.wait(
+            false,
+            validate_inputs
+        );
     }
 
     /**
@@ -447,19 +447,19 @@ export class OverlayElement extends HTMLElement {
     }
 
     /**
-     * @param {string} message
+     * @param {string | null} message
      * @returns {void}
      */
-    set message(message) {
-        this.#message_element.innerText = message;
+    set message(message = null) {
+        this.#message_element.innerText = message ?? "";
     }
 
     /**
-     * @param {Input[] | boolean} inputs
+     * @param {Input[] | boolean | null} inputs
      * @returns {Promise<void>}
      */
-    async setInputs(inputs) {
-        if (typeof inputs === "boolean" || inputs.length > 0) {
+    async setInputs(inputs = null) {
+        if (typeof inputs === "boolean" || (inputs?.length ?? 0) > 0) {
             if (this.#form_element === null) {
                 const {
                     FORM_ELEMENT_EVENT_CHANGE,
@@ -467,7 +467,7 @@ export class OverlayElement extends HTMLElement {
                     FormElement
                 } = await import("form/src/FormElement.mjs");
 
-                this.#form_element ??= await FormElement.new(
+                this.#form_element = await FormElement.new(
                     null,
                     this.#style_sheet_manager
                 );
@@ -494,10 +494,12 @@ export class OverlayElement extends HTMLElement {
                 );
             }
         } else {
-            if (this.#form_element !== null) {
-                this.#form_element.remove();
-                this.#form_element = null;
+            if (this.#form_element === null) {
+                return;
             }
+
+            this.#form_element.remove();
+            this.#form_element = null;
         }
     }
 
@@ -515,32 +517,47 @@ export class OverlayElement extends HTMLElement {
     /**
      * @param {boolean | null} loading
      * @param {boolean | null} size
+     * @param {boolean | null} transparent
      * @returns {Promise<void>}
      */
-    async showLoading(loading = null, size = null) {
-        if (loading ?? true) {
-            if (this.#loading_spinner_element === null) {
-                const {
-                    LOADING_SPINNER_ELEMENT_VARIABLE_PREFIX,
-                    LoadingSpinnerElement
-                } = await import("loading-spinner/src/LoadingSpinnerElement.mjs");
+    async showLoading(loading = null, size = null, transparent = null) {
+        const _loading = loading ?? true;
 
-                this.#loading_spinner_element ??= await LoadingSpinnerElement.new(
+        if (_loading && (transparent ?? false)) {
+            this.#container_element.style.setProperty(`${OVERLAY_ELEMENT_VARIABLE_PREFIX}container-background-color`, "transparent");
+            this.#container_element.style.setProperty(`${OVERLAY_ELEMENT_VARIABLE_PREFIX}container-border-color`, "transparent");
+        } else {
+            this.#container_element.style.removeProperty(`${OVERLAY_ELEMENT_VARIABLE_PREFIX}container-background-color`);
+            this.#container_element.style.removeProperty(`${OVERLAY_ELEMENT_VARIABLE_PREFIX}container-border-color`);
+        }
+
+        if (_loading) {
+            const {
+                LOADING_SPINNER_ELEMENT_VARIABLE_PREFIX,
+                LoadingSpinnerElement
+            } = await import("loading-spinner/src/LoadingSpinnerElement.mjs");
+
+            if (this.#loading_spinner_element === null) {
+                this.#loading_spinner_element = await LoadingSpinnerElement.new(
                     this.#style_sheet_manager
                 );
-
-                if (size ?? false) {
-                    this.#loading_element.style.setProperty(`${LOADING_SPINNER_ELEMENT_VARIABLE_PREFIX}size`, `var(${OVERLAY_ELEMENT_VARIABLE_PREFIX}loading-size)`);
-                    this.#loading_element.style.setProperty(`${LOADING_SPINNER_ELEMENT_VARIABLE_PREFIX}width`, `var(${OVERLAY_ELEMENT_VARIABLE_PREFIX}loading-width`);
-                }
-
                 this.#loading_element.append(this.#loading_spinner_element);
             }
-        } else {
-            if (this.#loading_spinner_element !== null) {
-                this.#loading_spinner_element.remove();
-                this.#loading_spinner_element = null;
+
+            if (size ?? false) {
+                this.#loading_element.style.setProperty(`${LOADING_SPINNER_ELEMENT_VARIABLE_PREFIX}size`, `var(${OVERLAY_ELEMENT_VARIABLE_PREFIX}loading-size)`);
+                this.#loading_element.style.setProperty(`${LOADING_SPINNER_ELEMENT_VARIABLE_PREFIX}width`, `var(${OVERLAY_ELEMENT_VARIABLE_PREFIX}loading-width`);
+            } else {
+                this.#loading_element.style.removeProperty(`${LOADING_SPINNER_ELEMENT_VARIABLE_PREFIX}size`);
+                this.#loading_element.style.removeProperty(`${LOADING_SPINNER_ELEMENT_VARIABLE_PREFIX}width`);
             }
+        } else {
+            if (this.#loading_spinner_element === null) {
+                return;
+            }
+
+            this.#loading_spinner_element.remove();
+            this.#loading_spinner_element = null;
         }
     }
 
@@ -552,11 +569,11 @@ export class OverlayElement extends HTMLElement {
     }
 
     /**
-     * @param {string} title
+     * @param {string | null} title
      * @returns {void}
      */
-    set title(title) {
-        this.#title_element.innerText = title;
+    set title(title = null) {
+        this.#title_element.innerText = title ?? "";
     }
 
     /**
@@ -571,7 +588,7 @@ export class OverlayElement extends HTMLElement {
 
     /**
      * @param {boolean | null} show
-     * @param {string[] | boolean | null} validate_inputs
+     * @param {boolean | null} validate_inputs
      * @param {boolean | null} remove
      * @returns {Promise<Result>}
      */
@@ -586,24 +603,13 @@ export class OverlayElement extends HTMLElement {
         } = Promise.withResolvers();
 
         this.addEventListener(OVERLAY_ELEMENT_EVENT_BUTTON_CLICK, async e => {
-            let _validate_inputs;
-            if (validate_inputs === null) {
-                const {
-                    buttons
-                } = this;
-                _validate_inputs = (buttons.length > 1 ? buttons.splice(1) : buttons).map(button => button.value);
-            } else {
-                _validate_inputs = validate_inputs;
-            }
-            if (Array.isArray(_validate_inputs) ? _validate_inputs.includes(e.detail.button) : _validate_inputs) {
-                if (!await this.validateInputs()) {
-                    resolve(this.wait(
-                        show,
-                        validate_inputs,
-                        remove
-                    ));
-                    return;
-                }
+            if (((validate_inputs ?? true) && (this.buttons.find(button => button.value === e.detail.button)?.["validate-inputs"] ?? false)) && !await this.validateInputs()) {
+                resolve(this.wait(
+                    show,
+                    validate_inputs,
+                    remove
+                ));
+                return;
             }
 
             if (remove ?? true) {
@@ -626,10 +632,17 @@ export class OverlayElement extends HTMLElement {
     }
 
     /**
-     * @returns {HTMLFormElement}
+     * @returns {HTMLDivElement}
      */
     get #buttons_element() {
         return this.#shadow.querySelector(".buttons");
+    }
+
+    /**
+     * @returns {HTMLDivElement}
+     */
+    get #container_element() {
+        return this.#shadow.querySelector(".container");
     }
 
     /**

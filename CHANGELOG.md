@@ -6,6 +6,16 @@ Changes:
 
 \-
 
+## v2024-06-21-1
+
+Changes:
+
+- Move `buttons_vertical` config to individual `wide` button config
+- Move `validate_inputs` buttons config on `wait` to individual `validate-inputs` button config
+- `close` function to emulate button click
+- Supports `inputs` in `new`
+- Move static loading `transparant` config to `showLoading` config
+
 ## v2024-05-09-1
 
 Changes:

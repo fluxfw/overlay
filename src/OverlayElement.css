@@ -73,6 +73,7 @@
 .buttons {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     gap: 10px;
     height: auto;
     margin-top: 10px;
@@ -126,11 +127,7 @@ button:not(:disabled):active {
     }
 }
 
-.buttons[data-vertical] {
-    flex-direction: column;
-}
-
-.buttons[data-vertical] button {
+.buttons button[data-wide] {
    flex-grow: 0;
    flex-shrink: 0;
    width: 100%;
