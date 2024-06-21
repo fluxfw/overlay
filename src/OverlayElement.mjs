@@ -374,8 +374,8 @@ export class OverlayElement extends HTMLElement {
 
             button_element.value = button.value;
 
-            button_element.addEventListener("click", async () => {
-                await this.close(
+            button_element.addEventListener("click", () => {
+                this.#button_click(
                     button_element.value
                 );
             });
@@ -391,12 +391,9 @@ export class OverlayElement extends HTMLElement {
      */
     async close(button, validate_inputs = null) {
         queueMicrotask(() => {
-            this.dispatchEvent(new CustomEvent(OVERLAY_ELEMENT_EVENT_BUTTON_CLICK, {
-                detail: {
-                    button,
-                    inputs: this.input_values
-                }
-            }));
+            this.#button_click(
+                button
+            );
         });
 
         return this.wait(
@@ -624,6 +621,19 @@ export class OverlayElement extends HTMLElement {
         });
 
         return promise;
+    }
+
+    /**
+     * @param {string} button
+     * @returns {void}
+     */
+    #button_click(button) {
+        this.dispatchEvent(new CustomEvent(OVERLAY_ELEMENT_EVENT_BUTTON_CLICK, {
+            detail: {
+                button,
+                inputs: this.input_values
+            }
+        }));
     }
 
     /**
