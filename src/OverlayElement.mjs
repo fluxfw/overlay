@@ -256,7 +256,9 @@ export class OverlayElement extends HTMLElement {
 
         overlay_element.message = message;
 
-        overlay_element.inputs = inputs;
+        await overlay_element.setInputs(
+            inputs
+        );
 
         overlay_element.buttons = buttons;
 
