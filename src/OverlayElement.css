@@ -128,9 +128,9 @@ button:not(:disabled):active {
 }
 
 .buttons button[data-wide] {
-   flex-grow: 0;
-   flex-shrink: 0;
-   width: 100%;
+    flex-grow: 0;
+    flex-shrink: 0;
+    width: 100%;
 }
 
 :is(.title, .message, .inputs, .loading, .buttons):empty {
