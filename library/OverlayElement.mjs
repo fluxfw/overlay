@@ -2,13 +2,13 @@ import css from "./OverlayElement.css" with { type: "css" };
 import root_css from "./OverlayElementRoot.css" with { type: "css" };
 
 /** @typedef {import("./Button.mjs").Button} Button */
-/** @typedef {import("form/src/FormElement.mjs").FormElement} FormElement */
-/** @typedef {import("form/src/Input.mjs").Input} Input */
-/** @typedef {import("form/src/InputValue.mjs").InputValue} InputValue */
-/** @typedef {import("loading-spinner/src/LoadingSpinnerElement.mjs").LoadingSpinnerElement} LoadingSpinnerElement */
+/** @typedef {import("form/FormElement.mjs").FormElement} FormElement */
+/** @typedef {import("form/Input.mjs").Input} Input */
+/** @typedef {import("form/InputValue.mjs").InputValue} InputValue */
+/** @typedef {import("loading-spinner/LoadingSpinnerElement.mjs").LoadingSpinnerElement} LoadingSpinnerElement */
 /** @typedef {import("./Result.mjs").Result} Result */
 /** @typedef {import("./StyleSheetManager/StyleSheetManager.mjs").StyleSheetManager} StyleSheetManager */
-/** @typedef {import("form/src/validateValue.mjs").validateValue} validateValue */
+/** @typedef {import("form/validateValue.mjs").validateValue} validateValue */
 
 export const OVERLAY_ELEMENT_EVENT_BUTTON_CLICK = "overlay-button-click";
 
@@ -464,7 +464,7 @@ export class OverlayElement extends HTMLElement {
                     FORM_ELEMENT_EVENT_CHANGE,
                     FORM_ELEMENT_EVENT_INPUT,
                     FormElement
-                } = await import("form/src/FormElement.mjs");
+                } = await import("form/FormElement.mjs");
 
                 this.#form_element = await FormElement.new(
                     null,
@@ -534,7 +534,7 @@ export class OverlayElement extends HTMLElement {
             const {
                 LOADING_SPINNER_ELEMENT_VARIABLE_PREFIX,
                 LoadingSpinnerElement
-            } = await import("loading-spinner/src/LoadingSpinnerElement.mjs");
+            } = await import("loading-spinner/LoadingSpinnerElement.mjs");
 
             if (this.#loading_spinner_element === null) {
                 this.#loading_spinner_element = await LoadingSpinnerElement.new(
