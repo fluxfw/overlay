@@ -2,25 +2,20 @@ import css from "./OverlayElement.css" with { type: "css" };
 import root_css from "./OverlayElementRoot.css" with { type: "css" };
 
 /** @typedef {import("./Button.mjs").Button} Button */
-/** @typedef {import("form/FormElement.mjs").FormElement} FormElement */
+/** @typedef {import("form/FormElementWithEvents.mjs").FormElementWithEvents} FormElementWithEvents */
 /** @typedef {import("form/Input.mjs").Input} Input */
 /** @typedef {import("form/InputValue.mjs").InputValue} InputValue */
 /** @typedef {import("loading-spinner/LoadingSpinnerElement.mjs").LoadingSpinnerElement} LoadingSpinnerElement */
+/** @typedef {import("./OverlayElementWithEvents.mjs").OverlayElementWithEvents} OverlayElementWithEvents */
 /** @typedef {import("./Result.mjs").Result} Result */
 /** @typedef {import("./StyleSheetManager/StyleSheetManager.mjs").StyleSheetManager} StyleSheetManager */
 /** @typedef {import("form/validateValue.mjs").validateValue} validateValue */
-
-export const OVERLAY_ELEMENT_EVENT_BUTTON_CLICK = "overlay-button-click";
-
-export const OVERLAY_ELEMENT_EVENT_INPUT_CHANGE = "overlay-input-change";
-
-export const OVERLAY_ELEMENT_EVENT_INPUT_INPUT = "overlay-input-input";
 
 export const OVERLAY_ELEMENT_VARIABLE_PREFIX = "--overlay-";
 
 export class OverlayElement extends HTMLElement {
     /**
-     * @type {FormElement | null}
+     * @type {FormElementWithEvents | null}
      */
     #form_element = null;
     /**
@@ -91,7 +86,7 @@ export class OverlayElement extends HTMLElement {
 
     /**
      * @param {StyleSheetManager | null} style_sheet_manager
-     * @returns {Promise<OverlayElement>}
+     * @returns {Promise<OverlayElementWithEvents>}
      */
     static async loading(style_sheet_manager = null) {
         const overlay_element = await this.new(
@@ -182,7 +177,7 @@ export class OverlayElement extends HTMLElement {
      * @param {Input[] | null} inputs
      * @param {Button[] | null} buttons
      * @param {StyleSheetManager | null} style_sheet_manager
-     * @returns {Promise<OverlayElement>}
+     * @returns {Promise<OverlayElementWithEvents>}
      */
     static async new(title = null, message = null, inputs = null, buttons = null, style_sheet_manager = null) {
         if (style_sheet_manager !== null) {
@@ -460,24 +455,24 @@ export class OverlayElement extends HTMLElement {
     async setInputs(inputs = null) {
         if (typeof inputs === "boolean" || (inputs?.length ?? 0) > 0) {
             if (this.#form_element === null) {
-                const {
-                    FORM_ELEMENT_EVENT_CHANGE,
-                    FORM_ELEMENT_EVENT_INPUT,
-                    FormElement
-                } = await import("form/FormElement.mjs");
-
-                this.#form_element = await FormElement.new(
+                this.#form_element = await (await import("form/FormElement.mjs")).FormElement.new(
                     null,
                     this.#style_sheet_manager
                 );
-                this.#form_element.addEventListener(FORM_ELEMENT_EVENT_CHANGE, e => {
-                    this.dispatchEvent(new CustomEvent(OVERLAY_ELEMENT_EVENT_INPUT_CHANGE, {
-                        detail: e.detail
+                this.#form_element.addEventListener("input-change", event => {
+                    this.dispatchEvent(new CustomEvent("input-change", {
+                        detail: Object.freeze({
+                            name: event.detail.name,
+                            value: event.detail.value
+                        })
                     }));
                 });
-                this.#form_element.addEventListener(FORM_ELEMENT_EVENT_INPUT, e => {
-                    this.dispatchEvent(new CustomEvent(OVERLAY_ELEMENT_EVENT_INPUT_INPUT, {
-                        detail: e.detail
+                this.#form_element.addEventListener("input-input", event => {
+                    this.dispatchEvent(new CustomEvent("input-input", {
+                        detail: Object.freeze({
+                            name: event.detail.name,
+                            value: event.detail.value
+                        })
                     }));
                 });
                 this.#inputs_element.append(this.#form_element);
@@ -601,8 +596,8 @@ export class OverlayElement extends HTMLElement {
             resolve
         } = Promise.withResolvers();
 
-        this.addEventListener(OVERLAY_ELEMENT_EVENT_BUTTON_CLICK, async e => {
-            if (((validate_inputs ?? true) && (this.buttons.find(button => button.value === e.detail.button)?.["validate-inputs"] ?? false)) && !await this.validateInputs()) {
+        this.addEventListener("button-click", async event => {
+            if (((validate_inputs ?? true) && (this.buttons.find(button => button.value === event.detail.button)?.["validate-inputs"] ?? false)) && !await this.validateInputs()) {
                 resolve(this.wait(
                     show,
                     validate_inputs,
@@ -615,7 +610,7 @@ export class OverlayElement extends HTMLElement {
                 this.remove();
             }
 
-            resolve(e.detail);
+            resolve(event.detail);
         }, {
             once: true
         });
@@ -628,11 +623,11 @@ export class OverlayElement extends HTMLElement {
      * @returns {void}
      */
     #button_click(button) {
-        this.dispatchEvent(new CustomEvent(OVERLAY_ELEMENT_EVENT_BUTTON_CLICK, {
-            detail: {
+        this.dispatchEvent(new CustomEvent("button-click", {
+            detail: Object.freeze({
                 button,
                 inputs: this.input_values
-            }
+            })
         }));
     }
 

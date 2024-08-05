@@ -6,6 +6,12 @@ Changes:
 
 \-
 
+## v2024-08-05-1
+
+Changes:
+
+- Rename `button-click`|`input-change`|`input-input` events, remove constants, add `addEventListener`|`removeEventListener` JSDoc
+
 ## v2024-07-08-1
 
 Changes:
