@@ -208,6 +208,9 @@ export class OverlayElement extends HTMLElement {
             }
         }
 
+        /**
+         * @type {OverlayElementWithEvents}
+         */
         const overlay_element = new this(
             style_sheet_manager
         );
